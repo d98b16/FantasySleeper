@@ -276,5 +276,12 @@ against my own conclusion. But it is not a substitute for the check.
 - **Take the QB later than the 6-point rule tempts you to** — the edge is real
   but it is ~13 points, and an RB1 is worth 200.
 - **In the last four rounds, take the widest ceiling, not the highest floor.**
-  The console ranks upside proportionally for exactly this. Your bench is four
-  deep; a player who cannot return 2× his projection is not worth a bench spot.
+  This is now wired into the board itself, not just advice: once every starter is
+  filled the recommendation engine stops ranking by expected value and starts
+  ranking by proportional upside. On a realistic late-round board that swaps a
+  23%-upside tight end off the top of the list for a run of 120-141% swings. Your
+  bench is four deep; a player who cannot return roughly double his projection is
+  not worth one of them.
+- **Bust risk is penalised on the excess over his own price tier**, never on the
+  absolute rate, and it bites harder on a starter than on a bench flyer. Ranking
+  by absolute bust just lists late-round picks, which is true and useless.

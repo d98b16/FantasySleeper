@@ -327,6 +327,59 @@ const T = (name, val) => { checks[name] = val; };
     Object.values(E3.tested_signals).every(s => typeof s.effect_pts === 'number'));
   T('both outcome-range lists render', v3.upRows === 8 && v3.dnRows === 8);
 
+  // ---------- 12. bench picks are graded on ceiling, starters on value ------
+  const modes = await page.evaluate(() => {
+    const { S, derive, norm: N, WEIGHTS: W } = window.DRAFT;
+    const R = JSON.parse(document.getElementById('ranksData').textContent).ranks;
+    const gone = R.filter(x => x.pos !== 'DST').slice(0, 100);
+    const MY = [3, 22, 27, 46, 51, 70, 75, 94];
+    const build = (posList) => {
+      const mine = [];
+      for (const pos of posList)
+        mine.push(R.find(x => x.pos === pos && !mine.some(m => m.name === x.name)));
+      S.picks = []; S.taken = new Set(gone.map(x => N(x.name)));
+      mine.forEach(x => S.taken.add(x.pos === 'DST' ? x.team.toUpperCase() : N(x.name)));
+      for (let i = 1; i <= 110; i++) {
+        const k = MY.indexOf(i);
+        const m = k >= 0 ? mine[k] : null;      // fewer positions than picks is fine
+        S.picks.push({ pickNo: i, round: Math.ceil(i / 12), slot: m ? 3 : 99,
+          name: m ? m.name : 'x' + i, pos: m ? m.pos : 'WR',
+          team: 'XX', ranked: m || null });
+      }
+      return derive();
+    };
+    const FULL = ['QB', 'RB', 'RB', 'WR', 'WR', 'TE', 'RB', 'DST'];
+    const bench = build(FULL);
+    const benchTop = bench.scored.slice(0, 5);
+    const benchUpside = benchTop.map(x =>
+      x.edge && x.edge.mean > 0 ? (x.edge.ceil - x.edge.mean) / x.edge.mean : 0);
+    const names = benchTop.map(x => x.name);
+    // same state with the two new weights disabled
+    const cb = W.ceilingBench, br = W.bustRisk;
+    W.ceilingBench = 0; W.bustRisk = 0;
+    const off = build(FULL).scored.slice(0, 5).map(x => x.name);
+    const offUpside = build(FULL).scored.slice(0, 5).map(x =>
+      x.edge && x.edge.mean > 0 ? (x.edge.ceil - x.edge.mean) / x.edge.mean : 0);
+    W.ceilingBench = cb; W.bustRisk = br;
+    // a state with a starter still open must NOT be in bench mode
+    const starter = build(['QB', 'RB', 'WR', 'WR', 'TE', 'RB']);
+    const swing = bench.scored.filter(x => x.why.some(w => /bench swing/.test(w))).length;
+    const starterSwing = starter.scored.filter(x => x.why.some(w => /bench swing/.test(w))).length;
+    S.picks = []; S.taken = new Set();
+    return { benchRequired: bench.requiredLeft, starterRequired: starter.requiredLeft,
+             names, off, meanUpsideOn: benchUpside.reduce((a, b) => a + b, 0) / 5,
+             meanUpsideOff: offUpside.reduce((a, b) => a + b, 0) / 5,
+             swing, starterSwing };
+  });
+  T('bench mode detected only when every starter is filled',
+    modes.benchRequired === 0 && modes.starterRequired > 0);
+  T('ceiling-seeking fires on bench picks', modes.swing > 0);
+  T('ceiling-seeking does NOT fire while a starter is open', modes.starterSwing === 0);
+  T('the ceiling terms actually change the ordering',
+    JSON.stringify(modes.names) !== JSON.stringify(modes.off));
+  T('bench recommendations have higher mean upside than without the terms',
+    modes.meanUpsideOn > modes.meanUpsideOff);
+
   T('no JS errors', errors.length === 0);
 
   let fail = 0;

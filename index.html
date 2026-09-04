@@ -319,6 +319,15 @@ const WEIGHTS = {
   scarcity:  22,   // <=2 left in this player's tier at this position
   scarcity2: 10,   // <=4 left
   scarcityNow:18,  // unlikely to survive to your next pick, and you need him
+  /* Once every starter is filled, the remaining picks are bench spots and the
+     objective changes. A bench player who cannot return well above his
+     projection is not worth a seat -- there are only four of them. So on bench
+     picks the board switches from ranking by expected value to ranking by
+     UPSIDE, which is the one thing 14 seasons of quantile models can tell you
+     that ADP cannot. Measured historically, a late-round pick busts ~36% of the
+     time regardless; you are buying the tail, not the mean. */
+  ceilingBench: 26,  // per unit of proportional upside, bench picks only
+  bustRisk:     34,  // per unit of bust risk ABOVE his own price tier
   value:      1.6, // per pick they've fallen past their ADP
   valueCap:  30,   // cap on the falling-value bonus
   byeStack:  14,   // penalty per extra starter already on that bye
@@ -655,9 +664,27 @@ function derive(){
       const live = (need[p.pos] > 0) || (flexOpen > 0 && ['RB','WR','TE'].includes(p.pos));
       s += e.edge * WEIGHTS.edge * (live ? 1 : 0.25);
       if (e.flags && e.flags.includes('injury_fade'))
-        why.push('injury fade (tested, -3 ranks)');
+        why.push('injury fade (tested, -16 pts)');
     }
-    if (e && e.bust >= 0.28) why.push(`${Math.round(e.bust*100)}% bust risk`);
+    /* Bust risk is penalised on the EXCESS over his own price tier, never on
+       the absolute rate: cheap players bust more, but you already knew that when
+       you drafted them cheap, so penalising the absolute number would just push
+       every late-round pick down uniformly and tell you nothing. It bites
+       hardest on a starter slot -- a bench flyer busting costs you a bench spot,
+       a starter busting costs you the week. */
+    if (e && WEIGHTS.bustRisk && e.bust_excess > 0){
+      const benchPick = requiredLeft === 0;
+      s -= WEIGHTS.bustRisk * e.bust_excess * (benchPick ? 0.4 : 1);
+      if (e.bust_excess >= 0.05)
+        why.push(`${Math.round(e.bust*100)}% bust, ${Math.round(e.bust_excess*100)} over his tier`);
+    }
+
+    /* Bench picks are graded on ceiling, not on the mean. */
+    if (e && WEIGHTS.ceilingBench && requiredLeft === 0 && e.mean > 0){
+      const upside = Math.max(0, (e.ceil - e.mean) / e.mean);
+      s += WEIGHTS.ceilingBench * upside;
+      if (upside >= 0.9) why.push(`${Math.round(upside*100)}% upside — bench swing`);
+    }
     const lasts = lastsUntil(p, curPick, oddsTarget);
     if (lasts && lasts.pct < 0.35 && (need[p.pos] > 0 ||
         (flexOpen > 0 && ['RB','WR','TE'].includes(p.pos)))){
