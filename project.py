@@ -154,9 +154,28 @@ def main():
         rp = league.replacement_ranks()[pos]
         repl_pg = float(anchor.predict([rp])[0])
         te["repl_pg"] = repl_pg
-        # bust = finishing below replacement level, read off the quantile fan
-        span = np.clip(te.ceil_pg - te.floor_pg, 1e-6, None)
-        te["bust_prob"] = np.clip((repl_pg - te.floor_pg) / span, 0, 1)
+
+        # BUST is defined RELATIVE TO DRAFT COST, not to a league-wide line.
+        # Measuring it against replacement made every player drafted after the
+        # starter cutoff "100% bust" -- a WR taken in round 10 who finishes WR35
+        # is not a bust, he is exactly what you paid for. Bust here is the chance
+        # of returning less than 70% of his own projection, read off the fitted
+        # quantile fan by interpolating the CDF.
+        qs = np.array(QUANTILES)
+        fan = np.column_stack([rate[f"q{int(q*100)}"] for q in qs])
+        fan = np.sort(fan, axis=1)                 # enforce monotone quantiles
+        med = fan[:, len(qs) // 2]
+        shifted = fan - med[:, None] + te.anchor_pg.values[:, None]
+        thresh = 0.70 * te.anchor_pg.values
+        bust = np.array([np.interp(t, row, qs, left=0.0, right=1.0)
+                         for t, row in zip(thresh, shifted)])
+        te["bust_prob"] = np.clip(bust, 0, 1)
+        # P(below the position's replacement line) kept separately: it is the
+        # right question for a STARTER slot even though it is the wrong one for
+        # a bench pick.
+        te["sub_repl_prob"] = np.clip(
+            np.array([np.interp(repl_pg, row, qs, left=0.0, right=1.0)
+                      for row in shifted]), 0, 1)
         te.loc[hurt, "bust_prob"] = np.clip(te.loc[hurt, "bust_prob"] + 0.08, 0, 1)
 
         te["mean_season"] = te.mean_pg * te.games_proj
@@ -173,9 +192,10 @@ def main():
                         np.where(P.x_games_1 >= 9, "med", "low")))
     keep = ["name", "pos", "team", "bye", "rank", "adp", "tier", "mean_pg", "floor_pg",
             "ceil_pg", "model_pg", "repl_pg", "games_proj", "mean_season",
-            "floor_season", "ceil_season", "vor_season", "bust_prob",
+            "floor_season", "ceil_season", "vor_season", "bust_prob", "sub_repl_prob",
             "injury_fade", "confidence", "x_games_1", "x_snap_pct_1",
-            "x_target_share_1", "x_td_oe_pg_1", "x_pts_pg_1"]
+            "x_target_share_1", "x_td_oe_pg_1", "x_pts_pg_1", "x_age", "x_exp",
+            "x_adp_pos_rank"]
     P = P[[c for c in keep if c in P.columns]].sort_values("rank")
     P.to_csv(os.path.join(OUT, "projections_2026.csv"), index=False, float_format="%.3f")
     P.to_parquet(os.path.join(OUT, "projections_2026.parquet"), index=False)
