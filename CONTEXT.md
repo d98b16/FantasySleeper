@@ -48,24 +48,33 @@ The rule lifts **every** QB, the streamer included:
 | Top-6 QB average | 20.67 pts/g | 24.54 pts/g |
 | **Elite QB's advantage** | **3.26 pts/g** | **3.67 pts/g** |
 
-So the elite QB's edge over a streamer grows by **0.41 pts/game — about 7 points
-across a whole season**. That is one good WR game. It is not worth a 5th-round pick.
-Checked at every plausible replacement rank (QB9 through QB18) the gain stays in the
-5-16 pts/season band; measured against QB1 specifically it is ~0 or negative.
+So the elite QB's edge over a streamer grows by **0.41 pts/game**. Repeating the whole
+measurement across **two seasons (2024 and 2025) x three replacement ranks (QB11/13/15)**
+puts the gain at **7-19 points across a full season, median 12.5** — under a point a
+game. Measured against QB1 specifically it is ~0 or negative. It is not worth a
+5th-round pick.
 
 For scale, value over replacement across a season: best QB ~60 pts, best TE ~113,
 best WR ~117, best RB ~227. **Wait on QB until round 9.**
 
-Second, counterintuitive result: **rushing TDs are already 6 points in every format**,
-so dual-threat QBs gain the *least* from this rule, not the most. 2025 season gain:
+Second: **rushing TDs are already 6 points in every format**, so the rule rewards
+*passing-TD volume* and nothing else. The gain is exactly `2 x passing TDs`.
 
-    Stafford +92   Goff +68   Maye +62   Prescott +60   |   Allen +50   Lamar +42
+    2025:  Stafford +92  Goff +68  Maye +62  Prescott +60  |  Allen +50  Hurts +50  Lamar +42
+    2024:  Burrow  +86  Mayfield +82  Jackson +82  Goff +74  |  Allen +56  Daniels +50  Hurts +36
 
-Prefer high-volume pocket passers. The previous note in this file said the opposite.
+The obvious reading — "so fade the dual-threats" — is **too strong, and I am not
+claiming it**. The correlation between rushing-TD share and 6-pt gain among the top 20
+gainers is only -0.23 (2024) and -0.18 (2025), and Lamar Jackson was the *third* biggest
+gainer of 2024 on 41 passing TDs. The label is a bad proxy. **Look at the QB's actual
+passing-TD total, not his rushing reputation.** The previous note in this file said
+dual-threats gain the most, which is backwards.
 
-**Confidence:** the structural argument (the rule lifts replacement as much as elite;
-rushing TDs are format-neutral) is arithmetic and does not depend on the sample. The
-specific per-player numbers are one season and will not repeat exactly.
+**Confidence.** High on the structure: that the rule lifts replacement as much as elite,
+and that the gain equals 2 x passing TDs, is arithmetic and cannot fail to hold. Medium
+on the magnitude: 7-19 pts/season is a real range, not a point estimate, and the spread
+comes from which replacement rank you believe. Low on any individual 2026 projection —
+these are 2025 and 2024 totals and QBs do not repeat TD counts.
 
 ## Sleeper API — public, read-only, no auth, no key
 

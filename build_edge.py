@@ -33,6 +33,10 @@ os.makedirs(RAW, exist_ok=True)
 NFLVERSE = "https://github.com/nflverse/nflverse-data/releases/download"
 SOURCES = {
     "stats_player_week_2025.parquet": f"{NFLVERSE}/stats_player/stats_player_week_2025.parquet",
+    # 2024 is pulled ONLY to test whether the 6-pt result replicates. One season
+    # is a small sample and the headline claim should not rest on one point
+    # estimate from one year at one replacement rank.
+    "stats_player_week_2024.parquet": f"{NFLVERSE}/stats_player/stats_player_week_2024.parquet",
     "snap_counts_2025.parquet":       f"{NFLVERSE}/snap_counts/snap_counts_2025.parquet",
     "roster_weekly_2025.parquet":     f"{NFLVERSE}/weekly_rosters/roster_weekly_2025.parquet",
     "play_by_play_2025.parquet":      f"{NFLVERSE}/pbp/play_by_play_2025.parquet",
@@ -318,6 +322,35 @@ def main():
     # The naive claim "6-pt TDs make QBs more valuable" is wrong on its own: the
     # rule lifts EVERY QB, replacement included. What actually changes is the
     # SPREAD between an elite QB and a replacement QB. Measure exactly that.
+    def qb_spread(frame, rk):
+        """Elite-QB advantage over replacement, at 4-pt vs 6-pt passing TDs."""
+        q = frame[frame.games >= 8]
+        if len(q) < rk:
+            return None
+        q4 = q.sort_values("pts_pub4_pg", ascending=False)
+        q6 = q.sort_values("pts_league_pg", ascending=False)
+        r4, r6 = float(q4.iloc[rk-1].pts_pub4_pg), float(q6.iloc[rk-1].pts_league_pg)
+        t4, t6 = float(q4.head(6).pts_pub4_pg.mean()), float(q6.head(6).pts_league_pg.mean())
+        return dict(repl4=r4, repl6=r6, top4=t4, top6=t6,
+                    spread4=t4-r4, spread6=t6-r6, gain=(t6-r6)-(t4-r4))
+
+    # Replicate on 2024. If the result only holds in one season at one
+    # replacement rank, it is noise and must be reported as such.
+    REPL_YEARS = {}
+    for yr in (2024, 2025):
+        f = os.path.join(RAW, f"stats_player_week_{yr}.parquet")
+        if not os.path.exists(f):
+            continue
+        y = pd.read_parquet(f)
+        y = y[(y.season_type == "REG") & (y.position == "QB")].copy()
+        y["pl"] = score(y, LEAGUE); y["pp"] = score(y, PUBLIC4)
+        ya = y.groupby("player_display_name", as_index=False).agg(
+            games=("week", "nunique"), pl=("pl", "sum"), pp=("pp", "sum"))
+        ya["pts_league_pg"] = ya.pl / ya.games
+        ya["pts_pub4_pg"]   = ya.pp / ya.games
+        REPL_YEARS[yr] = {rk: qb_spread(ya, rk) for rk in (11, 13, 15)}
+    gains = [v["gain"] * 17 for yr in REPL_YEARS for v in REPL_YEARS[yr].values() if v]
+
     qb = agg[(agg.position == "QB") & (agg.games >= 8)].copy()
     qb_rk = REPL_RANK["QB"]
     qb4 = qb.sort_values("pts_pub4_pg", ascending=False)
@@ -337,6 +370,12 @@ def main():
             "spread_gain_pg": round(float((top6 - r6) - (top4 - r4)), 2),
             "spread_gain_season": round(float(((top6 - r6) - (top4 - r4)) * 17), 1),
             "replacement_qb_name": str(qb6.iloc[qb_rk - 1].player_display_name),
+            # the honest version: a RANGE across 2 seasons x 3 replacement ranks,
+            # not one point estimate dressed up as the answer
+            "gain_season_lo": round(min(gains), 1) if gains else None,
+            "gain_season_hi": round(max(gains), 1) if gains else None,
+            "gain_season_mid": round(float(np.median(gains)), 1) if gains else None,
+            "replications": len(gains),
         }
     else:
         THESIS = {}
@@ -488,7 +527,8 @@ def main_with_edge():
              "ok": bool(r["edge_trusted"]), "why": r["why"],
              # season points a QB gains purely from the 6-pt rule (= 2 x pass TD).
              # Kept per-player because pocket passers gain far more than rushers.
-             "sixpt": round(float(r["sixpt_gap"]), 0) if r["pos"] == "QB" else 0}
+             "sixpt": round(float(r["sixpt_gap"]), 0) if r["pos"] == "QB" else 0,
+             "ptd": int(r["passing_tds"]) if r["pos"] == "QB" else 0}
             for r in json.loads(df.to_json(orient="records"))
         ],
         "unmatched": [{"name": u["name"], "pos": u["pos"], "rank": u["rank"]} for u in unmatched],

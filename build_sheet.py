@@ -44,8 +44,9 @@ banner = ("VERIFIED FROM SLEEPER — \"GovSmart Gridiron\":  12-team snake  • 
           "draft Fri Sep 4, 5:30 PM ET, 90s pick timer.   "
           "ROSTER: QB / RB / RB / WR / WR / TE / FLEX / DEF + 4 BENCH — only 12 rounds, NO KICKER, and a DEFENSE is a required starter. "
           "2 IR slots let you stash an injured guy. "
-          "6-pt pass TDs lift EVERY QB including the streamer, so the elite QB's edge grows only ~7 pts ALL SEASON "
-          "(measured on 2025 data) — WAIT ON QB until round 9+, and prefer high-volume pocket passers over dual-threats.")
+          "6-pt pass TDs lift EVERY QB including the streamer, so the elite QB's edge grows only 7-19 pts ALL SEASON "
+          "(measured across 2024+2025) — WAIT ON QB until round 9+, then take the highest PASSING-TD volume left "
+          "(the rule pays 2 pts per passing TD and nothing for rushing).")
 ws["A2"] = banner
 ws["A2"].font = F(9, italic=True, color="B45309")
 ws["A2"].fill = fill("FFF2CC")
@@ -108,7 +109,7 @@ scenarios = [
     "GIBBS OR BIJAN SLIDES TO 3: take him. Then go WR + WR at 22/27 (A.J. Brown / Nico + Nabers / Flowers) — your RB1 is already banked.",
     "JEANTY FALLS TO 22: ankle discount, not a red flag — and you have 2 IR slots, so a slow start is survivable. Otherwise Walker is the safe anchor.",
     "ROSTER SHAPE: 12 rounds, 8 starters (QB/RB/RB/WR/WR/TE/FLEX/DEF), 4 bench, NO KICKER. Every pick is a roster spot — there is no room for dead weight.",
-    "QB, MEASURED (2025 nflverse, re-scored to 6-pt): the rule lifts the STREAMER from 17.4 to 20.9 pts/g and the top-6 from 20.7 to 24.5 — the elite QB's ADVANTAGE grows just 0.4 pts/g (~7 pts a season). Rushing TDs are already 6 pts in every format, so pocket passers gain most: Stafford +92, Goff +68, Maye +62 vs Allen +50, Lamar +42. Wait until round 9.",
+    "QB, MEASURED (nflverse 2024+2025, re-scored to 6-pt): the rule lifts the STREAMER from 17.4 to 20.9 pts/g and the top-6 from 20.7 to 24.5 — the elite QB's ADVANTAGE grows only 7-19 pts across a WHOLE SEASON (median 12.5 over 2 seasons x 3 replacement ranks). For scale, value over replacement: best QB ~60, best TE ~113, best WR ~117, best RB ~227. The rule pays exactly 2 pts per PASSING TD and nothing for rushing, so judge a QB on passing-TD volume, not on being a dual-threat. Wait until round 9.",
 ]
 sr = r + 1
 sb = ws.cell(sr, 1, "TURN SCENARIOS — PICKS 22 & 27 (you pick back-to-back)")
@@ -487,10 +488,11 @@ wb3.freeze_panes = "A3"
 wb3["U1"] = "ADP '-' = expert-rank tier (beyond live top-60 ADP)"
 wb3["U1"].font = F(9, italic=True, color="777777")
 qbn = wb3.cell(20, 11, "6-PT PASS TDs — WHAT THE DATA ACTUALLY SAYS: the rule lifts every QB, "
-    "streamer included, so the elite QB's edge over a streamer grows only ~7 pts across a whole season. "
-    "And because rushing TDs are already 6 pts in EVERY format, dual-threats gain the LEAST: "
-    "Stafford +92 / Goff +68 / Maye +62 vs Allen +50 / Lamar +42. Wait on QB until round 9, then take "
-    "the highest-volume passer left. Source: build_edge.py on 2025 nflverse.")
+    "streamer included, so the elite QB's edge over a streamer grows only 7-19 pts across a WHOLE season "
+    "(median 12.5, measured over 2024+2025 x 3 replacement ranks). The rule pays exactly 2 pts per "
+    "PASSING TD and nothing extra for rushing, so judge on passing-TD volume — 2025: Stafford +92, "
+    "Goff +68, Maye +62; 2024: Burrow +86, Mayfield +82, Jackson +82. Wait on QB until round 9. "
+    "Source: build_edge.py on nflverse.")
 qbn.font = F(9, italic=True, color="B45F06"); qbn.alignment = LEFTTOP
 wb3.merge_cells(start_row=20, start_column=11, end_row=25, end_column=14)
 
@@ -524,7 +526,7 @@ row = section(wb4, row, "VALUES (talent > draft cost — target these)", "137333
     ("Breece Hall (RB, NYJ)", "Groin now, but RB1 talent at an RB2 price — buy the dip if healthy."),
     ("Jameson Williams (WR, DET)", "Big-play ceiling in a loaded offense."),
     ("TreVeyon Henderson (RB, NE)", "Explosive; can seize the NE backfield."),
-    ("Matthew Stafford / Dak Prescott (QB)", "46 and 30 pass TDs in 2025 = +92 and +60 pts from the 6-pt rule, going 50+ picks after Allen."),
+    ("Matthew Stafford / Dak Prescott (QB)", "46 and 30 pass TDs in 2025 = +92 and +60 pts from the 6-pt rule, going 50+ picks after Allen. Judge QBs on passing-TD volume, not rushing reputation."),
     ("Marvin Harrison Jr. (WR, ARI)", "Year-3 bounce-back at a discount."),
 ])
 
