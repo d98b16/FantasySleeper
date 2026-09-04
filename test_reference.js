@@ -278,6 +278,38 @@ const T = (n, v) => { checks[n] = !!v; };
   T('a malformed hash is ignored, not fatal',
     bad.pos.join() === 'RB' && bad.view === 'both' && bad.rows >= 1);
 
+  // ---------- the undraftable player ----------
+  // the malformed-hash test above left pos=RB and bye=99 in state; reset first
+  await page.setViewportSize({ width: 1200, height: 1400 });
+  await page.evaluate(() => {
+    const S = window.__REFAPI__.state;
+    S.pos.clear(); S.bye = ''; S.rookies = false; S.view = 'both'; S.q = '';
+    document.getElementById('byeSel').value = '';
+    document.getElementById('rkChk').checked = false;
+    window.__REFAPI__.render();
+  });
+  await page.fill('#q', 'jacobs');
+  await page.waitForTimeout(150);
+  const dnd = await page.evaluate(() => ({
+    found: window.__REFAPI__.shown().some(p => /Jacobs/.test(p.n)),
+    tagged: /DO NOT DRAFT/.test(document.getElementById('board').innerHTML),
+    inByes: /Jacobs/.test(document.getElementById('byes').innerText),
+    inHc: /Jacobs/.test(document.getElementById('handcuffs').innerText),
+    inDis: /Jacobs/.test(document.getElementById('disagree').innerText),
+    banner: /Josh Jacobs/.test(document.querySelector('.dnd').innerText),
+  }));
+  // He must stay SEARCHABLE — dropping him made the search return nothing, which
+  // reads as "not in the pool" rather than "do not draft" — but must not appear
+  // anywhere that implies he is available.
+  T('an undraftable player is still findable by search', dnd.found);
+  T('he carries a DO NOT DRAFT tag in the board', dnd.tagged);
+  T('he has his own banner at the top', dnd.banner);
+  T('he is excluded from the bye grid', !dnd.inByes);
+  T('he is excluded from handcuff pairs', !dnd.inHc);
+  T('he is excluded from the disagreement lists', !dnd.inDis);
+  await page.fill('#q', '');
+  await page.waitForTimeout(120);
+
   // ---------- phone layout ----------
   // The page must never scroll sideways: on a 90-second clock a horizontally
   // sliding page is unusable. The board sheds Tm/Tier/ADP under 620px and the

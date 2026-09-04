@@ -294,7 +294,7 @@ function renderOffBoard(){
 function renderByes(list){
   var wk = {};
   list.forEach(function(p){
-    if(!p.by || p.our==null || p.our>60) return;
+    if(!p.by || p.our==null || p.our>60 || p.dnd) return;   // he cannot be on your bye
     (wk[p.by] = wk[p.by] || []).push(p);
   });
   var weeks = Object.keys(wk).map(Number).sort(function(a,b){ return wk[b].length-wk[a].length; });

@@ -83,10 +83,11 @@ DND_KEYS = {league.norm(d["name"]) for d in DO_NOT_DRAFT}
 def load():
     board = pd.DataFrame(json.load(open(os.path.join(HERE, "ranks.json")))["ranks"])
     board["key"] = board.name.map(league.norm)
-    # An undraftable player must not appear anywhere on this page as if he were
-    # available -- he was showing up in the bye grid and as a handcuff LEAD,
-    # which is the exact opposite of the message.
-    board = board[~board.key.isin(DND_KEYS)].copy()
+    # An undraftable player is KEPT in the board list so that searching his name
+    # finds him and shows the DO NOT DRAFT tag -- dropping him made the search
+    # return nothing, which reads as "not in the pool" rather than "do not
+    # draft". He is filtered out of the derived sections (bye grid, handcuffs,
+    # disagreements) individually, where showing him would imply he is available.
     dp = pd.read_parquet(os.path.join(RAW, "draft_picks.parquet"))
     dp = dp[(dp.season == CLASS) & dp.position.isin(league.SKILL)].copy()
     dp["key"] = dp.pfr_player_name.map(league.norm)
@@ -119,8 +120,9 @@ def rookies(board, dp):
 
 def byes(board):
     """Where the board is thin. Two starters on the same bye is a real problem
-    with four bench spots; two bench players is not."""
-    b = board[board.pos != "DST"].copy()
+    with four bench spots; two bench players is not. Undraftable players are
+    excluded -- he cannot be on your bye if he cannot be on your roster."""
+    b = board[(board.pos != "DST") & (~board.key.isin(DND_KEYS))].copy()
     top = b[b["rank"] <= 60]
     grid = []
     for wk in sorted(b.bye.dropna().unique()):
