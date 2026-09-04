@@ -99,6 +99,52 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
 .alert.bad{background:rgba(248,81,73,.1);border-color:var(--bad);color:#ffb3ae}
 .alert.good{background:rgba(63,185,80,.1);border-color:var(--good);color:#8ee79c}
 
+/* ---------- edge ---------- */
+#thesis{padding:9px 12px;font-size:11px;line-height:1.5;color:var(--dim);border-bottom:1px solid var(--line);background:rgba(227,179,65,.06)}
+#thesis b{color:var(--gold)}
+#thesis .hd{color:var(--gold);font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+.edgecols{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+@media(max-width:700px){.edgecols{grid-template-columns:1fr}}
+.edgecol{background:var(--panel);padding:0 0 6px}
+.edgecol > h3{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;padding:7px 12px;font-weight:800}
+.edgecol.up > h3{color:var(--good)} .edgecol.dn > h3{color:var(--bad)}
+.erow{display:flex;gap:8px;padding:5px 12px;border-bottom:1px solid rgba(45,57,71,.4);align-items:flex-start}
+.erow:last-child{border-bottom:none}
+.erow .d{font-size:13px;font-weight:800;min-width:34px;font-variant-numeric:tabular-nums}
+.erow.up .d{color:var(--good)} .erow.dn .d{color:var(--bad)}
+.erow .b{min-width:0}
+.erow .nm{font-size:12px;font-weight:700}
+.erow .rk{font-size:9.5px;color:var(--faint)}
+.erow .wy{font-size:10px;color:var(--dim);line-height:1.35;margin-top:1px}
+.edelta{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+.edelta.up{color:var(--good)} .edelta.dn{color:var(--bad)} .edelta.na{color:var(--faint);font-weight:600}
+/* ---------- roster slots ---------- */
+#slotCount{display:flex;align-items:baseline;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line);background:var(--panel2);flex-wrap:wrap}
+#slotCount .big{font-size:23px;font-weight:800;line-height:1}
+#slotCount .rest{font-size:12px;color:var(--dim)}
+#slotCount .gapwarn{font-size:11px;font-weight:800;color:var(--bad);margin-left:auto;text-align:right}
+#slotCount .gapok{font-size:11px;font-weight:800;color:var(--good);margin-left:auto}
+.slotgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:4px 12px 10px}
+.slotsec{grid-column:1/-1;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:800;padding:9px 0 1px}
+.slot{border:1px solid var(--line);border-radius:7px;padding:6px 8px;min-height:46px;display:flex;flex-direction:column;justify-content:center;gap:1px;background:var(--panel2);overflow:hidden}
+.slot .sl{font-size:8.5px;font-weight:800;letter-spacing:.07em;color:var(--faint)}
+.slot .sp{font-size:12.5px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot .sm{font-size:10px;color:var(--faint)}
+.slot.filled{border-left-width:3px;border-left-style:solid}
+.slot.filled.pRB{border-left-color:var(--rb)}
+.slot.filled.pWR{border-left-color:var(--wr)}
+.slot.filled.pQB{border-left-color:var(--qb)}
+.slot.filled.pTE{border-left-color:var(--te)}
+.slot.filled.pDST{border-left-color:var(--dst)}
+/* an unfilled STARTER is the actual problem — make it loud */
+.slot.open{background:transparent;border-style:dashed}
+.slot.open.starter{border-color:var(--bad);border-width:1.5px;background:rgba(248,81,73,.08)}
+.slot.open.starter .sl{color:var(--bad)}
+.slot.open.starter .sp{color:var(--bad);font-weight:800;font-size:11.5px;letter-spacing:.04em}
+.slot.open.bench{border-color:var(--line);opacity:.45}
+.slot.open.bench .sp{color:var(--faint);font-weight:600;font-size:11px}
+.slot.ir{opacity:.4;border-style:dashed}
+.slot .inj{color:var(--warn);font-weight:800;font-size:9px}
 /* ---------- roster / feed ---------- */
 .rlist{padding:6px 12px 10px;display:flex;flex-direction:column;gap:5px}
 .ritem{display:flex;align-items:center;gap:8px;font-size:12px}
@@ -167,9 +213,23 @@ footer{margin-top:10px;font-size:10.5px;color:var(--faint);text-align:center;lin
     <div class="card">
       <h2>Best available <span class="sub" id="baSub">by our board + your needs</span></h2>
       <table>
-        <thead><tr><th style="width:34px">#</th><th>Player</th><th style="width:44px">Pos</th><th style="width:38px">Bye</th><th style="width:46px" class="num">ADP</th><th style="width:40px">Tier</th></tr></thead>
+        <thead><tr><th style="width:34px">#</th><th>Player</th><th style="width:44px">Pos</th><th style="width:38px">Bye</th><th style="width:46px" class="num">ADP</th><th style="width:46px" class="num">Edge</th><th style="width:40px">Tier</th></tr></thead>
         <tbody id="baBody"></tbody>
       </table>
+    </div>
+    <div class="card">
+      <h2>Edge vs ADP <span class="sub">2025 nflverse · re-scored for 0.5 PPR + 6-pt pass TD</span></h2>
+      <div id="thesis"></div>
+      <div class="edgecols">
+        <div class="edgecol up"><h3>Undervalued — take earlier than ADP</h3><div id="edgeUp"></div></div>
+        <div class="edgecol dn"><h3>Overpriced — let someone else have them</h3><div id="edgeDn"></div></div>
+      </div>
+      <div class="planline why" style="color:var(--faint);border-top:1px solid var(--line)">
+        Delta = board rank &minus; my rank by value-over-replacement. One season is a small
+        sample: players who changed teams or had no 2025 role are excluded from this list
+        entirely rather than guessed at. Numbers are precomputed offline by
+        <b>build_edge.py</b> — the browser does no modelling.
+      </div>
     </div>
     <div class="card">
       <h2>Pick feed <span class="sub" id="feedSub"></span></h2>
@@ -188,14 +248,15 @@ footer{margin-top:10px;font-size:10.5px;color:var(--faint);text-align:center;lin
       <div class="supply" id="supply"></div>
     </div>
     <div class="card">
-      <h2>Your team <span class="sub" id="rosterSub"></span></h2>
-      <div class="rlist" id="roster"><div class="empty">Nothing drafted yet.</div></div>
+      <h2>Your roster <span class="sub" id="rosterSub"></span></h2>
+      <div id="slotCount"></div>
+      <div class="slotgrid" id="slots"></div>
     </div>
     <div class="card">
       <h2>Plan for your next pick</h2>
       <div id="planBox"></div>
       <div class="planline why" style="color:var(--faint);border-top:1px solid var(--line)">
-        Board covers the top 120. A 12&times;12 draft is 144 picks, so late rounds run past our rankings — expected, not a bug.
+        Board covers the top ${RANKS.length}. A 12&times;12 draft is 144 picks, so the deepest rounds can still run past it.
       </div>
     </div>
   </div>
@@ -206,7 +267,8 @@ footer{margin-top:10px;font-size:10.5px;color:var(--faint);text-align:center;lin
   Edit <b>RANKS</b>, <b>WEIGHTS</b>, or <b>ROSTER_NEED</b> in this file's script block to change the logic.
 </footer>
 
-<script id="ranksData" type="application/json">{"ranks":[{"rank":1,"name":"Jahmyr Gibbs","pos":"RB","team":"DET","bye":6,"adp":1.5,"tier":1,"notes":""},{"rank":2,"name":"Bijan Robinson","pos":"RB","team":"ATL","bye":11,"adp":2.2,"tier":1,"notes":""},{"rank":3,"name":"Puka Nacua","pos":"WR","team":"LAR","bye":11,"adp":3.0,"tier":1,"notes":"Groin \u2014 minor, expected Wk1"},{"rank":4,"name":"Ja'Marr Chase","pos":"WR","team":"CIN","bye":6,"adp":3.9,"tier":1,"notes":"Safest WR1"},{"rank":5,"name":"Jaxon Smith-Njigba","pos":"WR","team":"SEA","bye":11,"adp":5.2,"tier":1,"notes":""},{"rank":6,"name":"Jonathan Taylor","pos":"RB","team":"IND","bye":13,"adp":5.9,"tier":2,"notes":""},{"rank":7,"name":"Christian McCaffrey","pos":"RB","team":"SF","bye":8,"adp":6.6,"tier":2,"notes":"Elite when healthy"},{"rank":8,"name":"Amon-Ra St. Brown","pos":"WR","team":"DET","bye":6,"adp":8.0,"tier":2,"notes":""},{"rank":9,"name":"James Cook III","pos":"RB","team":"BUF","bye":7,"adp":9.3,"tier":2,"notes":""},{"rank":10,"name":"Derrick Henry","pos":"RB","team":"BAL","bye":13,"adp":9.7,"tier":2,"notes":"Age, still elite"},{"rank":11,"name":"De'Von Achane","pos":"RB","team":"MIA","bye":6,"adp":11.7,"tier":2,"notes":""},{"rank":12,"name":"Drake London","pos":"WR","team":"ATL","bye":11,"adp":12.0,"tier":2,"notes":""},{"rank":13,"name":"CeeDee Lamb","pos":"WR","team":"DAL","bye":14,"adp":12.5,"tier":2,"notes":""},{"rank":14,"name":"Justin Jefferson","pos":"WR","team":"MIN","bye":6,"adp":14.4,"tier":3,"notes":""},{"rank":15,"name":"Chase Brown","pos":"RB","team":"CIN","bye":6,"adp":15.1,"tier":3,"notes":""},{"rank":16,"name":"Rashee Rice","pos":"WR","team":"KC","bye":5,"adp":15.2,"tier":3,"notes":""},{"rank":17,"name":"Saquon Barkley","pos":"RB","team":"PHI","bye":10,"adp":17.6,"tier":3,"notes":""},{"rank":18,"name":"Nico Collins","pos":"WR","team":"HOU","bye":8,"adp":18.4,"tier":3,"notes":""},{"rank":19,"name":"Ashton Jeanty","pos":"RB","team":"LV","bye":13,"adp":18.9,"tier":3,"notes":"Ankle \u2014 Wk1 uncertain; ADP sliding (~15 to 19)"},{"rank":20,"name":"George Pickens","pos":"WR","team":"DAL","bye":14,"adp":19.9,"tier":3,"notes":""},{"rank":21,"name":"A.J. Brown","pos":"WR","team":"NE","bye":11,"adp":20.0,"tier":3,"notes":"New team (NE)"},{"rank":22,"name":"Kenneth Walker III","pos":"RB","team":"KC","bye":5,"adp":20.5,"tier":3,"notes":"Now in KC"},{"rank":23,"name":"Chris Olave","pos":"WR","team":"NO","bye":8,"adp":23.2,"tier":4,"notes":""},{"rank":24,"name":"Omarion Hampton","pos":"RB","team":"LAC","bye":7,"adp":24.0,"tier":4,"notes":""},{"rank":25,"name":"Zay Flowers","pos":"WR","team":"BAL","bye":13,"adp":25.2,"tier":4,"notes":""},{"rank":26,"name":"Josh Jacobs","pos":"RB","team":"GB","bye":11,"adp":25.4,"tier":4,"notes":""},{"rank":27,"name":"Malik Nabers","pos":"WR","team":"NYG","bye":8,"adp":26.2,"tier":4,"notes":"Knee \u2014 expected Wk1"},{"rank":28,"name":"Kyren Williams","pos":"RB","team":"LAR","bye":11,"adp":27.4,"tier":4,"notes":""},{"rank":29,"name":"Jeremiyah Love","pos":"RB","team":"ARI","bye":14,"adp":29.0,"tier":4,"notes":"Rookie; high-ankle \u2014 expected Wk1"},{"rank":30,"name":"Tetairoa McMillan","pos":"WR","team":"CAR","bye":5,"adp":30.7,"tier":4,"notes":""},{"rank":31,"name":"Garrett Wilson","pos":"WR","team":"NYJ","bye":13,"adp":31.1,"tier":4,"notes":""},{"rank":32,"name":"DeVonta Smith","pos":"WR","team":"PHI","bye":10,"adp":31.6,"tier":4,"notes":"Value"},{"rank":33,"name":"Josh Allen","pos":"QB","team":"BUF","bye":7,"adp":33.0,"tier":5,"notes":"QB1 overall \u2014 6-pt pass-TD riser"},{"rank":34,"name":"Javonte Williams","pos":"RB","team":"DAL","bye":14,"adp":33.2,"tier":5,"notes":"Now in DAL"},{"rank":35,"name":"Breece Hall","pos":"RB","team":"NYJ","bye":13,"adp":33.5,"tier":5,"notes":"Groin \u2014 expected Wk1; market rising"},{"rank":36,"name":"Emeka Egbuka","pos":"WR","team":"TB","bye":10,"adp":33.7,"tier":5,"notes":"Toe \u2014 monitor (Q)"},{"rank":37,"name":"Tee Higgins","pos":"WR","team":"CIN","bye":6,"adp":35.9,"tier":5,"notes":""},{"rank":38,"name":"Travis Etienne Jr.","pos":"RB","team":"NO","bye":8,"adp":37.3,"tier":5,"notes":"Now in NO"},{"rank":39,"name":"Trey McBride","pos":"TE","team":"ARI","bye":14,"adp":37.8,"tier":5,"notes":"TE1 \u2014 elite"},{"rank":40,"name":"Davante Adams","pos":"WR","team":"LAR","bye":11,"adp":37.9,"tier":5,"notes":"Now in LAR"},{"rank":41,"name":"Cam Skattebo","pos":"RB","team":"NYG","bye":8,"adp":38.4,"tier":5,"notes":"Risky at cost"},{"rank":42,"name":"Jameson Williams","pos":"WR","team":"DET","bye":6,"adp":38.7,"tier":5,"notes":"Upside"},{"rank":43,"name":"Ladd McConkey","pos":"WR","team":"LAC","bye":7,"adp":41.0,"tier":5,"notes":""},{"rank":44,"name":"D'Andre Swift","pos":"RB","team":"CHI","bye":10,"adp":43.2,"tier":6,"notes":""},{"rank":45,"name":"Brock Bowers","pos":"TE","team":"LV","bye":13,"adp":44.0,"tier":6,"notes":"Elite TE \u2014 positional edge"},{"rank":46,"name":"DJ Moore","pos":"WR","team":"BUF","bye":7,"adp":44.9,"tier":6,"notes":"Now in BUF"},{"rank":47,"name":"Terry McLaurin","pos":"WR","team":"WAS","bye":7,"adp":45.1,"tier":6,"notes":""},{"rank":48,"name":"Bucky Irving","pos":"RB","team":"TB","bye":10,"adp":47.0,"tier":6,"notes":""},{"rank":49,"name":"Jaylen Waddle","pos":"WR","team":"DEN","bye":10,"adp":47.3,"tier":6,"notes":"Now in DEN"},{"rank":50,"name":"Rome Odunze","pos":"WR","team":"CHI","bye":10,"adp":48.9,"tier":6,"notes":""},{"rank":51,"name":"Drake Maye","pos":"QB","team":"NE","bye":11,"adp":51.3,"tier":6,"notes":"6-pt pass-TD riser"},{"rank":52,"name":"Quinshon Judkins","pos":"RB","team":"CLE","bye":11,"adp":51.5,"tier":6,"notes":""},{"rank":53,"name":"Bhayshul Tuten","pos":"RB","team":"JAX","bye":7,"adp":52.5,"tier":6,"notes":"Upside"},{"rank":54,"name":"Mike Evans","pos":"WR","team":"SF","bye":8,"adp":54.2,"tier":6,"notes":"Now in SF"},{"rank":55,"name":"Lamar Jackson","pos":"QB","team":"BAL","bye":13,"adp":55.5,"tier":6,"notes":"6-pt pass-TD riser (rush+pass)"},{"rank":56,"name":"David Montgomery","pos":"RB","team":"HOU","bye":8,"adp":55.5,"tier":6,"notes":"Now in HOU"},{"rank":57,"name":"Christian Watson","pos":"WR","team":"GB","bye":11,"adp":56.0,"tier":7,"notes":""},{"rank":58,"name":"Joe Burrow","pos":"QB","team":"CIN","bye":6,"adp":57.5,"tier":7,"notes":"6-pt pass-TD riser"},{"rank":59,"name":"Luther Burden III","pos":"WR","team":"CHI","bye":10,"adp":57.6,"tier":7,"notes":"Groin \u2014 expected Wk1; ADP rising"},{"rank":60,"name":"Courtland Sutton","pos":"WR","team":"DEN","bye":10,"adp":59.1,"tier":7,"notes":""},{"rank":61,"name":"Ollie Gordon II","pos":"RB","team":"MIA","bye":6,"adp":null,"tier":7,"notes":"Fell out of top-60 ADP \u2014 monitor role"},{"rank":62,"name":"Alec Pierce","pos":"WR","team":"IND","bye":13,"adp":null,"tier":7,"notes":"Ankle/PUP \u2014 expected Wk1"},{"rank":63,"name":"DK Metcalf","pos":"WR","team":"PIT","bye":9,"adp":null,"tier":7,"notes":""},{"rank":64,"name":"Marvin Harrison Jr.","pos":"WR","team":"ARI","bye":14,"adp":null,"tier":7,"notes":"Bounce-back upside"},{"rank":65,"name":"Parker Washington","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":7,"notes":""},{"rank":66,"name":"Brian Thomas Jr.","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":7,"notes":"Upside"},{"rank":67,"name":"Jaylen Warren","pos":"RB","team":"PIT","bye":9,"adp":null,"tier":7,"notes":""},{"rank":68,"name":"Carnell Tate","pos":"WR","team":"TEN","bye":9,"adp":null,"tier":7,"notes":"Rookie"},{"rank":69,"name":"Rhamondre Stevenson","pos":"RB","team":"NE","bye":11,"adp":null,"tier":7,"notes":""},{"rank":70,"name":"Chris Godwin Jr.","pos":"WR","team":"TB","bye":10,"adp":null,"tier":7,"notes":""},{"rank":71,"name":"TreVeyon Henderson","pos":"RB","team":"NE","bye":11,"adp":null,"tier":7,"notes":"Upside"},{"rank":72,"name":"Michael Pittman Jr.","pos":"WR","team":"PIT","bye":9,"adp":null,"tier":8,"notes":"Now in PIT"},{"rank":73,"name":"Tony Pollard","pos":"RB","team":"TEN","bye":9,"adp":null,"tier":8,"notes":""},{"rank":74,"name":"Jakobi Meyers","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":8,"notes":"Now in JAX"},{"rank":75,"name":"Jordan Addison","pos":"WR","team":"MIN","bye":6,"adp":null,"tier":8,"notes":""},{"rank":76,"name":"Quentin Johnston","pos":"WR","team":"LAC","bye":7,"adp":null,"tier":8,"notes":""},{"rank":77,"name":"Jayden Reed","pos":"WR","team":"GB","bye":11,"adp":null,"tier":8,"notes":""},{"rank":78,"name":"George Kittle","pos":"TE","team":"SF","bye":8,"adp":null,"tier":8,"notes":"Achilles \u2014 expected Wk1"},{"rank":79,"name":"Wan'Dale Robinson","pos":"WR","team":"TEN","bye":9,"adp":null,"tier":8,"notes":"Now in TEN"},{"rank":80,"name":"Josh Downs","pos":"WR","team":"IND","bye":13,"adp":null,"tier":8,"notes":""},{"rank":81,"name":"Rico Dowdle","pos":"RB","team":"PIT","bye":9,"adp":null,"tier":8,"notes":""},{"rank":82,"name":"Dak Prescott","pos":"QB","team":"DAL","bye":14,"adp":null,"tier":8,"notes":""},{"rank":83,"name":"Stefon Diggs","pos":"WR","team":"WAS","bye":7,"adp":null,"tier":8,"notes":"Now in WAS"},{"rank":84,"name":"Xavier Worthy","pos":"WR","team":"KC","bye":5,"adp":null,"tier":8,"notes":""},{"rank":85,"name":"Deebo Samuel Sr.","pos":"WR","team":"SF","bye":8,"adp":null,"tier":8,"notes":""},{"rank":86,"name":"J.K. Dobbins","pos":"RB","team":"DEN","bye":10,"adp":null,"tier":8,"notes":""},{"rank":87,"name":"Jayden Daniels","pos":"QB","team":"WAS","bye":7,"adp":null,"tier":8,"notes":"6-pt pass-TD riser (rush+pass)"},{"rank":88,"name":"Jadarian Price","pos":"RB","team":"SEA","bye":11,"adp":null,"tier":8,"notes":"Rookie"},{"rank":89,"name":"Matthew Stafford","pos":"QB","team":"LAR","bye":11,"adp":null,"tier":8,"notes":""},{"rank":90,"name":"Matthew Golden","pos":"WR","team":"GB","bye":11,"adp":null,"tier":9,"notes":"Upside"},{"rank":91,"name":"Colston Loveland","pos":"TE","team":"CHI","bye":10,"adp":null,"tier":9,"notes":""},{"rank":92,"name":"Jalen Hurts","pos":"QB","team":"PHI","bye":10,"adp":null,"tier":9,"notes":"Rushing QB \u2014 6-pt pass-TD riser"},{"rank":93,"name":"Brock Purdy","pos":"QB","team":"SF","bye":8,"adp":null,"tier":9,"notes":""},{"rank":94,"name":"Chuba Hubbard","pos":"RB","team":"CAR","bye":5,"adp":null,"tier":9,"notes":"Hamstring; committee w/ Brooks"},{"rank":95,"name":"Khalil Shakir","pos":"WR","team":"BUF","bye":7,"adp":null,"tier":9,"notes":""},{"rank":96,"name":"Romeo Doubs","pos":"WR","team":"NE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":97,"name":"Makai Lemon","pos":"WR","team":"PHI","bye":10,"adp":null,"tier":9,"notes":"Rookie \u2014 upside"},{"rank":98,"name":"Trevor Lawrence","pos":"QB","team":"JAX","bye":7,"adp":null,"tier":9,"notes":""},{"rank":99,"name":"Caleb Williams","pos":"QB","team":"CHI","bye":10,"adp":null,"tier":9,"notes":"Upside"},{"rank":100,"name":"Jared Goff","pos":"QB","team":"DET","bye":6,"adp":null,"tier":9,"notes":""},{"rank":101,"name":"Tyler Warren","pos":"TE","team":"IND","bye":13,"adp":null,"tier":9,"notes":"Groin \u2014 expected Wk1"},{"rank":102,"name":"Patrick Mahomes","pos":"QB","team":"KC","bye":5,"adp":null,"tier":9,"notes":"Knee \u2014 reduced rush upside"},{"rank":103,"name":"Jalen Coker","pos":"WR","team":"CAR","bye":5,"adp":null,"tier":9,"notes":""},{"rank":104,"name":"Rashid Shaheed","pos":"WR","team":"SEA","bye":11,"adp":null,"tier":9,"notes":"Now in SEA"},{"rank":105,"name":"Jerry Jeudy","pos":"WR","team":"CLE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":106,"name":"KC Concepcion","pos":"WR","team":"CLE","bye":11,"adp":null,"tier":9,"notes":"Rookie"},{"rank":107,"name":"Harold Fannin Jr.","pos":"TE","team":"CLE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":108,"name":"Jonathon Brooks","pos":"RB","team":"CAR","bye":5,"adp":null,"tier":9,"notes":"Committee w/ Hubbard"},{"rank":109,"name":"Justin Herbert","pos":"QB","team":"LAC","bye":7,"adp":null,"tier":10,"notes":""},{"rank":110,"name":"Kyle Pitts Sr.","pos":"TE","team":"ATL","bye":11,"adp":null,"tier":10,"notes":""},{"rank":111,"name":"Bo Nix","pos":"QB","team":"DEN","bye":10,"adp":null,"tier":10,"notes":""},{"rank":112,"name":"Jaxson Dart","pos":"QB","team":"NYG","bye":8,"adp":null,"tier":10,"notes":"Upside"},{"rank":113,"name":"Kyle Monangai","pos":"RB","team":"CHI","bye":10,"adp":null,"tier":10,"notes":"Knee \u2014 multi-week (Q)"},{"rank":114,"name":"Dallas Goedert","pos":"TE","team":"PHI","bye":10,"adp":null,"tier":10,"notes":""},{"rank":115,"name":"Kenny Gainwell","pos":"RB","team":"TB","bye":10,"adp":null,"tier":10,"notes":""},{"rank":116,"name":"Tre Tucker","pos":"WR","team":"LV","bye":13,"adp":null,"tier":10,"notes":""},{"rank":117,"name":"RJ Harvey","pos":"RB","team":"DEN","bye":10,"adp":null,"tier":10,"notes":"Handcuff (Dobbins)"},{"rank":118,"name":"Seattle D/ST","pos":"DST","team":"SEA","bye":11,"adp":null,"tier":10,"notes":"Stream \u2014 draft last 2 rds"},{"rank":119,"name":"Denver D/ST","pos":"DST","team":"DEN","bye":10,"adp":null,"tier":10,"notes":"Stream \u2014 draft last 2 rds"},{"rank":120,"name":"Houston D/ST","pos":"DST","team":"HOU","bye":8,"adp":null,"tier":10,"notes":"Stream \u2014 draft last 2 rds"}],"plan":[{"rd":1,"pick":3,"window":"1-6","target":"Ja'Marr Chase or Puka Nacua (elite WR1)","fallback":"Jaxon Smith-Njigba; Bijan Robinson if he slips","note":"Gibbs & Bijan usually gone 1-2. Lock an elite WR. Don't overthink it."},{"rd":2,"pick":22,"window":"18-25","target":"Kenneth Walker III or Omarion Hampton (anchor an RB)","fallback":"Ashton Jeanty if he slides (ankle discount); Nico Collins / A.J. Brown (WR)","note":"RB dries up fast. Grab your RB1 at the turn."},{"rd":3,"pick":27,"window":"24-31","target":"Malik Nabers or Zay Flowers (WR); Kyren Williams (RB)","fallback":"Chris Olave; Jeremiyah Love; DeVonta Smith","note":"You pick 22 & 27 back-to-back. Take whichever position you skipped at 22."},{"rd":4,"pick":46,"window":"43-52","target":"Brock Bowers (elite-TE edge) OR Terry McLaurin / DJ Moore (WR)","fallback":"Bucky Irving; Quinshon Judkins (RB)","note":"Prime spot to steal Bowers at TE, or keep stacking RB/WR."},{"rd":5,"pick":51,"window":"48-58","target":"Lamar Jackson (6-pt pass-TD stud) if he slides \u2014 or RB Quinshon Judkins / WR Mike Evans","fallback":"Drake Maye / Joe Burrow; David Montgomery; Bhayshul Tuten","note":"Elite QB is worth it in your format. Grab Lamar if he's there; else fill your thinnest spot."},{"rd":6,"pick":70,"window":"60-72","target":"DK Metcalf / Marvin Harrison Jr. (WR upside)","fallback":"Dak Prescott / Jayden Daniels (QB) if you skipped QB; TreVeyon Henderson (RB)","note":"Hunt upside WRs. If you still need a QB, Dak/Daniels are strong in 6-pt."},{"rd":7,"pick":75,"window":"72-80","target":"Jordan Addison / Jayden Reed (WR)","fallback":"Tony Pollard (RB); Dak or J. Daniels if a QB run starts","note":"Best-available target share. Don't get left without a QB."},{"rd":8,"pick":94,"window":"87-99","target":"Jalen Hurts or Jayden Daniels (QB) \u2014 if you waited","fallback":"Matthew Golden / Khalil Shakir (WR); Chuba Hubbard (RB)","note":"Prime QB window. With 6-pt pass TDs, Hurts/Daniels here is a steal \u2014 rush + pass points."},{"rd":9,"pick":99,"window":"94-104","target":"Tyler Warren (TE) or Makai Lemon / Matthew Golden (WR)","fallback":"Patrick Mahomes if QB still open; an RB handcuff","note":"Add upside, your QB2, or a starting TE if you still need one."},{"rd":10,"pick":118,"window":"110-123","target":"Kyle Pitts (TE) or handcuff RBs (RJ Harvey, Jonathon Brooks)","fallback":"Justin Herbert / Bo Nix (QB)","note":"Start handcuffing your RBs; add lottery tickets."},{"rd":11,"pick":123,"window":"Best avail.","target":"Handcuff your RB1/RB2; high-upside WR","fallback":"2nd TE or QB if thin","note":"Protect your studs. Bench = upside swings."},{"rd":12,"pick":142,"window":"Best avail.","target":"Upside WR/RB stashes; rookie breakouts","fallback":"\u2014","note":"Swing for ceiling, not floor, on the bench."},{"rd":13,"pick":147,"window":"Best avail.","target":"Best-available upside; more handcuffs","fallback":"\u2014","note":"Keep taking talent. No K/DST yet."},{"rd":14,"pick":166,"window":"Streamers","target":"Top DST (Seattle / Denver / Houston)","fallback":"\u2014","note":"Now grab a defense with a good Week-1 matchup."},{"rd":15,"pick":171,"window":"Streamers","target":"Kicker (any high-scoring offense)","fallback":"\u2014","note":"Kicker last. Stream both DST & K weekly."}],"scenarios":["DEFAULT (you took a WR at 3): leave the 22/27 turn with an RB anchor + one more stud.  Ideal pairs: Walker + Nabers  \u00b7  Hampton + Kyren  \u00b7  Jacobs + Olave.","CHASE AND NACUA BOTH GONE AT 3: take Jaxon Smith-Njigba. Do NOT reach for an RB at 3 \u2014 the Tier-1 WR still wins the pick.","GIBBS OR BIJAN SLIDES TO 3: take him. Then go WR + WR at 22/27 (A.J. Brown / Nico + Nabers / Flowers) \u2014 your RB1 is already banked.","JEANTY FALLS TO 22: that's an ankle discount, not a red flag \u2014 take him if you can stomach 'questionable' Week 1; otherwise Walker is the safe anchor."],"faab":[{"rule":"Save it for RBs","detail":"Most FAAB league-winners are backup RBs who fall into a starting job (injury or benching). Spend your biggest bids there, not on WRs."},{"rule":"Be aggressive early (Wks 1-4)","detail":"This is when breakout RB/WRs first surface and roles shift. Pounce on real opportunity \u2014 but don't empty the tank."},{"rule":"Cap any single bid","detail":"Rarely go over ~$30-40 on one player unless it's a clear league-winner (a true every-down bell-cow RB)."},{"rule":"Keep dry powder","detail":"Hold ~$25-30 into the fantasy playoff push (Wks 12-14) for an injury replacement or a great matchup streamer."},{"rule":"Win ties with odd bids","detail":"Bid $17 or $23, never round numbers \u2014 you edge out everyone parked on $15 / $20."},{"rule":"Stream K & DST cheap","detail":"Kickers, defenses, and one-week fill-ins are $0-2 bids. Never pay up for those."},{"rule":"Don't panic Week 1","detail":"Let roles settle a week or two before spending on preseason hype or one big game."}]}</script>
+<script id="ranksData" type="application/json">{"ranks":[{"rank":1,"name":"Jahmyr Gibbs","pos":"RB","team":"DET","bye":6,"adp":1.5,"tier":1,"notes":""},{"rank":2,"name":"Bijan Robinson","pos":"RB","team":"ATL","bye":11,"adp":2.2,"tier":1,"notes":""},{"rank":3,"name":"Puka Nacua","pos":"WR","team":"LAR","bye":11,"adp":3.0,"tier":1,"notes":"Groin \u2014 minor, expected Wk1"},{"rank":4,"name":"Ja'Marr Chase","pos":"WR","team":"CIN","bye":6,"adp":3.9,"tier":1,"notes":"Safest WR1"},{"rank":5,"name":"Jaxon Smith-Njigba","pos":"WR","team":"SEA","bye":11,"adp":5.2,"tier":1,"notes":""},{"rank":6,"name":"Jonathan Taylor","pos":"RB","team":"IND","bye":13,"adp":5.9,"tier":2,"notes":""},{"rank":7,"name":"Christian McCaffrey","pos":"RB","team":"SF","bye":8,"adp":6.6,"tier":2,"notes":"Elite when healthy"},{"rank":8,"name":"Amon-Ra St. Brown","pos":"WR","team":"DET","bye":6,"adp":8.0,"tier":2,"notes":""},{"rank":9,"name":"James Cook III","pos":"RB","team":"BUF","bye":7,"adp":9.3,"tier":2,"notes":""},{"rank":10,"name":"Derrick Henry","pos":"RB","team":"BAL","bye":13,"adp":9.7,"tier":2,"notes":"Age, still elite"},{"rank":11,"name":"De'Von Achane","pos":"RB","team":"MIA","bye":6,"adp":11.7,"tier":2,"notes":""},{"rank":12,"name":"Drake London","pos":"WR","team":"ATL","bye":11,"adp":12.0,"tier":2,"notes":""},{"rank":13,"name":"CeeDee Lamb","pos":"WR","team":"DAL","bye":14,"adp":12.5,"tier":2,"notes":""},{"rank":14,"name":"Justin Jefferson","pos":"WR","team":"MIN","bye":6,"adp":14.4,"tier":3,"notes":""},{"rank":15,"name":"Chase Brown","pos":"RB","team":"CIN","bye":6,"adp":15.1,"tier":3,"notes":""},{"rank":16,"name":"Rashee Rice","pos":"WR","team":"KC","bye":5,"adp":15.2,"tier":3,"notes":""},{"rank":17,"name":"Saquon Barkley","pos":"RB","team":"PHI","bye":10,"adp":17.6,"tier":3,"notes":""},{"rank":18,"name":"Nico Collins","pos":"WR","team":"HOU","bye":8,"adp":18.4,"tier":3,"notes":""},{"rank":19,"name":"Ashton Jeanty","pos":"RB","team":"LV","bye":13,"adp":18.9,"tier":3,"notes":"Ankle \u2014 Wk1 uncertain; ADP sliding (~15 to 19)"},{"rank":20,"name":"George Pickens","pos":"WR","team":"DAL","bye":14,"adp":19.9,"tier":3,"notes":""},{"rank":21,"name":"A.J. Brown","pos":"WR","team":"NE","bye":11,"adp":20.0,"tier":3,"notes":"New team (NE)"},{"rank":22,"name":"Kenneth Walker III","pos":"RB","team":"KC","bye":5,"adp":20.5,"tier":3,"notes":"Now in KC"},{"rank":23,"name":"Chris Olave","pos":"WR","team":"NO","bye":8,"adp":23.2,"tier":4,"notes":""},{"rank":24,"name":"Omarion Hampton","pos":"RB","team":"LAC","bye":7,"adp":24.0,"tier":4,"notes":""},{"rank":25,"name":"Zay Flowers","pos":"WR","team":"BAL","bye":13,"adp":25.2,"tier":4,"notes":""},{"rank":26,"name":"Josh Jacobs","pos":"RB","team":"GB","bye":11,"adp":25.4,"tier":4,"notes":""},{"rank":27,"name":"Malik Nabers","pos":"WR","team":"NYG","bye":8,"adp":26.2,"tier":4,"notes":"Knee \u2014 expected Wk1"},{"rank":28,"name":"Kyren Williams","pos":"RB","team":"LAR","bye":11,"adp":27.4,"tier":4,"notes":""},{"rank":29,"name":"Jeremiyah Love","pos":"RB","team":"ARI","bye":14,"adp":29.0,"tier":4,"notes":"Rookie; high-ankle \u2014 expected Wk1"},{"rank":30,"name":"Tetairoa McMillan","pos":"WR","team":"CAR","bye":5,"adp":30.7,"tier":4,"notes":""},{"rank":31,"name":"Garrett Wilson","pos":"WR","team":"NYJ","bye":13,"adp":31.1,"tier":4,"notes":""},{"rank":32,"name":"DeVonta Smith","pos":"WR","team":"PHI","bye":10,"adp":31.6,"tier":4,"notes":"Value"},{"rank":33,"name":"Josh Allen","pos":"QB","team":"BUF","bye":7,"adp":33.0,"tier":5,"notes":"QB1 overall \u2014 6-pt pass-TD riser"},{"rank":34,"name":"Javonte Williams","pos":"RB","team":"DAL","bye":14,"adp":33.2,"tier":5,"notes":"Now in DAL"},{"rank":35,"name":"Breece Hall","pos":"RB","team":"NYJ","bye":13,"adp":33.5,"tier":5,"notes":"Groin \u2014 expected Wk1; market rising"},{"rank":36,"name":"Emeka Egbuka","pos":"WR","team":"TB","bye":10,"adp":33.7,"tier":5,"notes":"Toe \u2014 monitor (Q)"},{"rank":37,"name":"Tee Higgins","pos":"WR","team":"CIN","bye":6,"adp":35.9,"tier":5,"notes":""},{"rank":38,"name":"Travis Etienne Jr.","pos":"RB","team":"NO","bye":8,"adp":37.3,"tier":5,"notes":"Now in NO"},{"rank":39,"name":"Trey McBride","pos":"TE","team":"ARI","bye":14,"adp":37.8,"tier":5,"notes":"TE1 \u2014 elite"},{"rank":40,"name":"Davante Adams","pos":"WR","team":"LAR","bye":11,"adp":37.9,"tier":5,"notes":"Now in LAR"},{"rank":41,"name":"Cam Skattebo","pos":"RB","team":"NYG","bye":8,"adp":38.4,"tier":5,"notes":"Risky at cost"},{"rank":42,"name":"Jameson Williams","pos":"WR","team":"DET","bye":6,"adp":38.7,"tier":5,"notes":"Upside"},{"rank":43,"name":"Ladd McConkey","pos":"WR","team":"LAC","bye":7,"adp":41.0,"tier":5,"notes":""},{"rank":44,"name":"D'Andre Swift","pos":"RB","team":"CHI","bye":10,"adp":43.2,"tier":6,"notes":""},{"rank":45,"name":"Brock Bowers","pos":"TE","team":"LV","bye":13,"adp":44.0,"tier":6,"notes":"Elite TE \u2014 positional edge"},{"rank":46,"name":"DJ Moore","pos":"WR","team":"BUF","bye":7,"adp":44.9,"tier":6,"notes":"Now in BUF"},{"rank":47,"name":"Terry McLaurin","pos":"WR","team":"WAS","bye":7,"adp":45.1,"tier":6,"notes":""},{"rank":48,"name":"Bucky Irving","pos":"RB","team":"TB","bye":10,"adp":47.0,"tier":6,"notes":""},{"rank":49,"name":"Jaylen Waddle","pos":"WR","team":"DEN","bye":10,"adp":47.3,"tier":6,"notes":"Now in DEN"},{"rank":50,"name":"Rome Odunze","pos":"WR","team":"CHI","bye":10,"adp":48.9,"tier":6,"notes":""},{"rank":51,"name":"Drake Maye","pos":"QB","team":"NE","bye":11,"adp":51.3,"tier":6,"notes":"6-pt pass-TD riser"},{"rank":52,"name":"Quinshon Judkins","pos":"RB","team":"CLE","bye":11,"adp":51.5,"tier":6,"notes":""},{"rank":53,"name":"Bhayshul Tuten","pos":"RB","team":"JAX","bye":7,"adp":52.5,"tier":6,"notes":"Upside"},{"rank":54,"name":"Mike Evans","pos":"WR","team":"SF","bye":8,"adp":54.2,"tier":6,"notes":"Now in SF"},{"rank":55,"name":"Lamar Jackson","pos":"QB","team":"BAL","bye":13,"adp":55.5,"tier":6,"notes":"6-pt pass-TD riser (rush+pass)"},{"rank":56,"name":"David Montgomery","pos":"RB","team":"HOU","bye":8,"adp":55.5,"tier":6,"notes":"Now in HOU"},{"rank":57,"name":"Christian Watson","pos":"WR","team":"GB","bye":11,"adp":56.0,"tier":7,"notes":""},{"rank":58,"name":"Joe Burrow","pos":"QB","team":"CIN","bye":6,"adp":57.5,"tier":7,"notes":"6-pt pass-TD riser"},{"rank":59,"name":"Luther Burden III","pos":"WR","team":"CHI","bye":10,"adp":57.6,"tier":7,"notes":"Groin \u2014 expected Wk1; ADP rising"},{"rank":60,"name":"Courtland Sutton","pos":"WR","team":"DEN","bye":10,"adp":59.1,"tier":7,"notes":""},{"rank":61,"name":"Ollie Gordon II","pos":"RB","team":"MIA","bye":6,"adp":null,"tier":7,"notes":"Fell out of top-60 ADP \u2014 monitor role"},{"rank":62,"name":"Alec Pierce","pos":"WR","team":"IND","bye":13,"adp":null,"tier":7,"notes":"Ankle/PUP \u2014 expected Wk1"},{"rank":63,"name":"DK Metcalf","pos":"WR","team":"PIT","bye":9,"adp":null,"tier":7,"notes":""},{"rank":64,"name":"Marvin Harrison Jr.","pos":"WR","team":"ARI","bye":14,"adp":null,"tier":7,"notes":"Bounce-back upside"},{"rank":65,"name":"Parker Washington","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":7,"notes":""},{"rank":66,"name":"Brian Thomas Jr.","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":7,"notes":"Upside"},{"rank":67,"name":"Jaylen Warren","pos":"RB","team":"PIT","bye":9,"adp":null,"tier":7,"notes":""},{"rank":68,"name":"Carnell Tate","pos":"WR","team":"TEN","bye":9,"adp":null,"tier":7,"notes":"Rookie"},{"rank":69,"name":"Rhamondre Stevenson","pos":"RB","team":"NE","bye":11,"adp":null,"tier":7,"notes":""},{"rank":70,"name":"Chris Godwin Jr.","pos":"WR","team":"TB","bye":10,"adp":null,"tier":7,"notes":""},{"rank":71,"name":"TreVeyon Henderson","pos":"RB","team":"NE","bye":11,"adp":null,"tier":7,"notes":"Upside"},{"rank":72,"name":"Michael Pittman Jr.","pos":"WR","team":"PIT","bye":9,"adp":null,"tier":8,"notes":"Now in PIT"},{"rank":73,"name":"Tony Pollard","pos":"RB","team":"TEN","bye":9,"adp":null,"tier":8,"notes":""},{"rank":74,"name":"Jakobi Meyers","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":8,"notes":"Now in JAX"},{"rank":75,"name":"Jordan Addison","pos":"WR","team":"MIN","bye":6,"adp":null,"tier":8,"notes":""},{"rank":76,"name":"Quentin Johnston","pos":"WR","team":"LAC","bye":7,"adp":null,"tier":8,"notes":""},{"rank":77,"name":"Jayden Reed","pos":"WR","team":"GB","bye":11,"adp":null,"tier":8,"notes":""},{"rank":78,"name":"George Kittle","pos":"TE","team":"SF","bye":8,"adp":null,"tier":8,"notes":"Achilles \u2014 expected Wk1"},{"rank":79,"name":"Wan'Dale Robinson","pos":"WR","team":"TEN","bye":9,"adp":null,"tier":8,"notes":"Now in TEN"},{"rank":80,"name":"Josh Downs","pos":"WR","team":"IND","bye":13,"adp":null,"tier":8,"notes":""},{"rank":81,"name":"Rico Dowdle","pos":"RB","team":"PIT","bye":9,"adp":null,"tier":8,"notes":""},{"rank":82,"name":"Dak Prescott","pos":"QB","team":"DAL","bye":14,"adp":null,"tier":8,"notes":""},{"rank":83,"name":"Stefon Diggs","pos":"WR","team":"WAS","bye":7,"adp":null,"tier":8,"notes":"Now in WAS"},{"rank":84,"name":"Xavier Worthy","pos":"WR","team":"KC","bye":5,"adp":null,"tier":8,"notes":""},{"rank":85,"name":"Deebo Samuel Sr.","pos":"WR","team":"SF","bye":8,"adp":null,"tier":8,"notes":""},{"rank":86,"name":"J.K. Dobbins","pos":"RB","team":"DEN","bye":10,"adp":null,"tier":8,"notes":""},{"rank":87,"name":"Jayden Daniels","pos":"QB","team":"WAS","bye":7,"adp":null,"tier":8,"notes":"6-pt pass-TD riser (rush+pass)"},{"rank":88,"name":"Jadarian Price","pos":"RB","team":"SEA","bye":11,"adp":null,"tier":8,"notes":"Rookie"},{"rank":89,"name":"Matthew Stafford","pos":"QB","team":"LAR","bye":11,"adp":null,"tier":8,"notes":""},{"rank":90,"name":"Matthew Golden","pos":"WR","team":"GB","bye":11,"adp":null,"tier":9,"notes":"Upside"},{"rank":91,"name":"Colston Loveland","pos":"TE","team":"CHI","bye":10,"adp":null,"tier":9,"notes":""},{"rank":92,"name":"Jalen Hurts","pos":"QB","team":"PHI","bye":10,"adp":null,"tier":9,"notes":"Rushing QB \u2014 6-pt pass-TD riser"},{"rank":93,"name":"Brock Purdy","pos":"QB","team":"SF","bye":8,"adp":null,"tier":9,"notes":""},{"rank":94,"name":"Chuba Hubbard","pos":"RB","team":"CAR","bye":5,"adp":null,"tier":9,"notes":"Hamstring; committee w/ Brooks"},{"rank":95,"name":"Khalil Shakir","pos":"WR","team":"BUF","bye":7,"adp":null,"tier":9,"notes":""},{"rank":96,"name":"Romeo Doubs","pos":"WR","team":"NE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":97,"name":"Makai Lemon","pos":"WR","team":"PHI","bye":10,"adp":null,"tier":9,"notes":"Rookie \u2014 upside"},{"rank":98,"name":"Trevor Lawrence","pos":"QB","team":"JAX","bye":7,"adp":null,"tier":9,"notes":""},{"rank":99,"name":"Caleb Williams","pos":"QB","team":"CHI","bye":10,"adp":null,"tier":9,"notes":"Upside"},{"rank":100,"name":"Jared Goff","pos":"QB","team":"DET","bye":6,"adp":null,"tier":9,"notes":""},{"rank":101,"name":"Tyler Warren","pos":"TE","team":"IND","bye":13,"adp":null,"tier":9,"notes":"Groin \u2014 expected Wk1"},{"rank":102,"name":"Patrick Mahomes","pos":"QB","team":"KC","bye":5,"adp":null,"tier":9,"notes":"Knee \u2014 reduced rush upside"},{"rank":103,"name":"Jalen Coker","pos":"WR","team":"CAR","bye":5,"adp":null,"tier":9,"notes":""},{"rank":104,"name":"Rashid Shaheed","pos":"WR","team":"SEA","bye":11,"adp":null,"tier":9,"notes":"Now in SEA"},{"rank":105,"name":"Jerry Jeudy","pos":"WR","team":"CLE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":106,"name":"KC Concepcion","pos":"WR","team":"CLE","bye":11,"adp":null,"tier":9,"notes":"Rookie"},{"rank":107,"name":"Harold Fannin Jr.","pos":"TE","team":"CLE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":108,"name":"Jonathon Brooks","pos":"RB","team":"CAR","bye":5,"adp":null,"tier":9,"notes":"Committee w/ Hubbard"},{"rank":109,"name":"Justin Herbert","pos":"QB","team":"LAC","bye":7,"adp":null,"tier":10,"notes":""},{"rank":110,"name":"Kyle Pitts Sr.","pos":"TE","team":"ATL","bye":11,"adp":null,"tier":10,"notes":""},{"rank":111,"name":"Bo Nix","pos":"QB","team":"DEN","bye":10,"adp":null,"tier":10,"notes":""},{"rank":112,"name":"Jaxson Dart","pos":"QB","team":"NYG","bye":8,"adp":null,"tier":10,"notes":"Upside"},{"rank":113,"name":"Kyle Monangai","pos":"RB","team":"CHI","bye":10,"adp":null,"tier":10,"notes":"Knee \u2014 multi-week (Q)"},{"rank":114,"name":"Dallas Goedert","pos":"TE","team":"PHI","bye":10,"adp":null,"tier":10,"notes":""},{"rank":115,"name":"Kenny Gainwell","pos":"RB","team":"TB","bye":10,"adp":null,"tier":10,"notes":""},{"rank":116,"name":"Tre Tucker","pos":"WR","team":"LV","bye":13,"adp":null,"tier":10,"notes":""},{"rank":117,"name":"RJ Harvey","pos":"RB","team":"DEN","bye":10,"adp":null,"tier":10,"notes":"Handcuff (Dobbins)"},{"rank":118,"name":"HOU D/ST","pos":"DST","team":"HOU","bye":8,"adp":null,"tier":10,"notes":"DEF #1 in 2025 (146 pts, 8.6/g) \u2014 REQUIRED starter, take one by R11"},{"rank":119,"name":"SEA D/ST","pos":"DST","team":"SEA","bye":11,"adp":null,"tier":10,"notes":"DEF #2 in 2025 (140 pts, 8.2/g) \u2014 REQUIRED starter, take one by R11"},{"rank":120,"name":"DEN D/ST","pos":"DST","team":"DEN","bye":10,"adp":null,"tier":10,"notes":"DEF #3 in 2025 (137 pts, 8.1/g) \u2014 REQUIRED starter, take one by R11"},{"rank":121,"name":"MIN D/ST","pos":"DST","team":"MIN","bye":6,"adp":null,"tier":10,"notes":"DEF #4 in 2025 (129 pts, 7.6/g) \u2014 REQUIRED starter, take one by R11"},{"rank":122,"name":"LAR D/ST","pos":"DST","team":"LAR","bye":11,"adp":null,"tier":10,"notes":"DEF #5 in 2025 (128 pts, 7.5/g) \u2014 REQUIRED starter, take one by R11"},{"rank":123,"name":"JAX D/ST","pos":"DST","team":"JAX","bye":7,"adp":null,"tier":10,"notes":"DEF #6 in 2025 (128 pts, 7.5/g) \u2014 REQUIRED starter, take one by R11"},{"rank":124,"name":"CLE D/ST","pos":"DST","team":"CLE","bye":11,"adp":null,"tier":10,"notes":"DEF #7 in 2025 (127 pts, 7.5/g) \u2014 REQUIRED starter, take one by R11"},{"rank":125,"name":"PHI D/ST","pos":"DST","team":"PHI","bye":10,"adp":null,"tier":10,"notes":"DEF #8 in 2025 (125 pts, 7.3/g) \u2014 REQUIRED starter, take one by R11"},{"rank":126,"name":"ATL D/ST","pos":"DST","team":"ATL","bye":11,"adp":null,"tier":10,"notes":"DEF #9 in 2025 (117 pts, 6.9/g) \u2014 REQUIRED starter, take one by R11"},{"rank":127,"name":"PIT D/ST","pos":"DST","team":"PIT","bye":9,"adp":null,"tier":10,"notes":"DEF #10 in 2025 (117 pts, 6.9/g) \u2014 REQUIRED starter, take one by R11"},{"rank":128,"name":"CHI D/ST","pos":"DST","team":"CHI","bye":10,"adp":null,"tier":10,"notes":"DEF #11 in 2025 (114 pts, 6.7/g) \u2014 REQUIRED starter, take one by R11"},{"rank":129,"name":"LAC D/ST","pos":"DST","team":"LAC","bye":7,"adp":null,"tier":10,"notes":"DEF #12 in 2025 (108 pts, 6.3/g) \u2014 REQUIRED starter, take one by R11"}],"plan":[{"rd":1,"pick":3,"window":"1-6","target":"Ja'Marr Chase or Puka Nacua (elite WR1)","fallback":"Jaxon Smith-Njigba; Bijan Robinson if he slips","note":"Gibbs & Bijan usually gone 1-2. Lock an elite WR. Don't overthink it."},{"rd":2,"pick":22,"window":"18-25","target":"Kenneth Walker III or Omarion Hampton (anchor an RB)","fallback":"Ashton Jeanty if he slides (ankle discount); Nico Collins / A.J. Brown (WR)","note":"RB dries up fast. Grab your RB1 at the turn."},{"rd":3,"pick":27,"window":"24-31","target":"Malik Nabers or Zay Flowers (WR); Kyren Williams (RB)","fallback":"Chris Olave; Jeremiyah Love; DeVonta Smith","note":"You pick 22 & 27 back-to-back. Take whichever position you skipped at 22."},{"rd":4,"pick":46,"window":"43-52","target":"Brock Bowers (elite-TE edge) OR Terry McLaurin / DJ Moore (WR)","fallback":"Bucky Irving; Quinshon Judkins (RB)","note":"Only 12 rounds \u2014 Bowers here locks TE and frees every later pick."},{"rd":5,"pick":51,"window":"48-58","target":"RB Quinshon Judkins or WR Mike Evans \u2014 keep stacking starters","fallback":"Bucky Irving; Rome Odunze; Jaylen Waddle","note":"Do NOT take a QB here. Top QB is worth ~60 pts over replacement; a top RB is worth ~227."},{"rd":6,"pick":70,"window":"60-72","target":"DK Metcalf / Marvin Harrison Jr. (WR upside)","fallback":"TreVeyon Henderson (RB); Christian Watson","note":"Fill your last open starting WR or RB here. Still not QB."},{"rd":7,"pick":75,"window":"72-80","target":"Jordan Addison / Jayden Reed (WR)","fallback":"Tony Pollard (RB); a starting TE if you still need one","note":"Bench is only 4 deep \u2014 starters beat lottery tickets."},{"rd":8,"pick":94,"window":"87-99","target":"Finish your 7 offensive starters \u2014 best WR/RB/TE left","fallback":"Tyler Warren / Kyle Pitts (TE); Matthew Golden (WR)","note":"Every starter filled before you spend a pick on QB."},{"rd":9,"pick":99,"window":"94-104","target":"QB NOW \u2014 Stafford / Prescott / Herbert / Lawrence / Mahomes","fallback":"Best FLEX left if two QBs you like are still there","note":"The QB window. 2025: Stafford +92 pts from the 6-pt rule vs Allen +50, at 56 picks cheaper."},{"rd":10,"pick":118,"window":"110-123","target":"Handcuff your RB1/RB2 (RJ Harvey, Jonathon Brooks)","fallback":"Kyle Pitts (TE2); Justin Herbert / Bo Nix (QB2)","note":"Only 4 bench spots \u2014 protect the studs you already paid for."},{"rd":11,"pick":123,"window":"Best avail.","target":"Best upside swing left on the board","fallback":"2nd TE or QB if you're thin there","note":"Last real value pick. Ceiling over floor."},{"rd":12,"pick":142,"window":"Last pick","target":"DEFENSE \u2014 Seattle / Denver / Houston (best Week-1 matchup)","fallback":"\u2014","note":"NO KICKER in this league. DEF is a required starter \u2014 this is the pick for it."}],"scenarios":["DEFAULT (you took a WR at 3): leave the 22/27 turn with an RB anchor + one more stud.  Ideal pairs: Walker + Nabers  \u00b7  Hampton + Kyren  \u00b7  Jacobs + Olave.","CHASE AND NACUA BOTH GONE AT 3: take Jaxon Smith-Njigba. Do NOT reach for an RB at 3 \u2014 the Tier-1 WR still wins the pick.","GIBBS OR BIJAN SLIDES TO 3: take him. Then go WR + WR at 22/27 (A.J. Brown / Nico + Nabers / Flowers) \u2014 your RB1 is already banked.","JEANTY FALLS TO 22: ankle discount, not a red flag \u2014 and you have 2 IR slots, so a slow start is survivable. Otherwise Walker is the safe anchor.","ROSTER SHAPE: 12 rounds, 8 starters (QB/RB/RB/WR/WR/TE/FLEX/DEF), 4 bench, NO KICKER. Every pick is a roster spot \u2014 there is no room for dead weight.","QB, MEASURED (2025 nflverse, re-scored to 6-pt): the rule lifts the STREAMER from 17.4 to 20.9 pts/g and the top-6 from 20.7 to 24.5 \u2014 the elite QB's ADVANTAGE grows just 0.4 pts/g (~7 pts a season). Rushing TDs are already 6 pts in every format, so pocket passers gain most: Stafford +92, Goff +68, Maye +62 vs Allen +50, Lamar +42. Wait until round 9."],"faab":[{"rule":"Save it for RBs","detail":"Most FAAB league-winners are backup RBs who fall into a starting job (injury or benching). Spend your biggest bids there, not on WRs."},{"rule":"Be aggressive early (Wks 1-4)","detail":"This is when breakout RB/WRs first surface and roles shift. Pounce on real opportunity \u2014 but don't empty the tank."},{"rule":"Cap any single bid","detail":"Rarely go over ~$30-40 on one player unless it's a clear league-winner (a true every-down bell-cow RB)."},{"rule":"Keep dry powder","detail":"Hold ~$25-30 into the fantasy playoff push (Wks 12-14) for an injury replacement or a great matchup streamer."},{"rule":"Win ties with odd bids","detail":"Bid $17 or $23, never round numbers \u2014 you edge out everyone parked on $15 / $20."},{"rule":"Stream defenses cheap","detail":"No kicker in this league. Defenses and one-week fill-ins are $0-2 bids \u2014 stream the matchup, never pay up."},{"rule":"Don't panic Week 1","detail":"Let roles settle a week or two before spending on preseason hype or one big game."}]}</script>
+<script id="edgeData" type="application/json">{"generated_from":"nflverse 2025 regular season","scoring":{"half_ppr":0.5,"pass_td":6,"pass_int":-2,"note":"verified live against Sleeper league scoring_settings"},"replacement":{"ranks":{"QB":13,"RB":31,"WR":30,"TE":14},"pts_per_game":{"QB":20.69,"RB":10.13,"WR":9.44,"TE":8.01}},"thesis":{"replacement_qb_4pt_pg":17.42,"replacement_qb_6pt_pg":20.87,"top6_qb_4pt_pg":20.67,"top6_qb_6pt_pg":24.54,"spread_4pt_pg":3.26,"spread_6pt_pg":3.67,"spread_gain_pg":0.41,"spread_gain_season":7.0,"replacement_qb_name":"Bo Nix"},"players":[{"name":"Jahmyr Gibbs","pos":"RB","rank":1,"erank":4,"edge":-3,"vor":117.3,"conf":"high","ok":true,"why":"18 TD on only 13.2 expected \u2014 TD luck won't repeat; 67 red-zone touches; 26 inside-the-10 touches","sixpt":0},{"name":"Bijan Robinson","pos":"RB","rank":2,"erank":2,"edge":0,"vor":141.6,"conf":"high","ok":true,"why":"48 red-zone touches; 21 inside-the-10 touches","sixpt":0},{"name":"Puka Nacua","pos":"WR","rank":3,"erank":5,"edge":-2,"vor":117.3,"conf":"med","ok":true,"why":"11 TD on only 7.7 expected \u2014 TD luck won't repeat; 30% target share; changed teams (LA->LAR)","sixpt":0},{"name":"Ja'Marr Chase","pos":"WR","rank":4,"erank":6,"edge":-2,"vor":113.2,"conf":"high","ok":true,"why":"32% target share; 94% snap share","sixpt":0},{"name":"Jaxon Smith-Njigba","pos":"WR","rank":5,"erank":10,"edge":-5,"vor":96.7,"conf":"high","ok":true,"why":"10 TD on only 6.6 expected \u2014 TD luck won't repeat; 37% target share","sixpt":0},{"name":"Jonathan Taylor","pos":"RB","rank":6,"erank":3,"edge":3,"vor":131.1,"conf":"high","ok":true,"why":"20 TD on only 15.7 expected \u2014 TD luck won't repeat; 74 red-zone touches; 40 inside-the-10 touches","sixpt":0},{"name":"Christian McCaffrey","pos":"RB","rank":7,"erank":1,"edge":6,"vor":226.9,"conf":"high","ok":true,"why":"17 TD on 22.2 expected \u2014 positive regression; 100 red-zone touches; 50 inside-the-10 touches","sixpt":0},{"name":"Amon-Ra St. Brown","pos":"WR","rank":8,"erank":8,"edge":0,"vor":108.0,"conf":"high","ok":true,"why":"32% target share; 21 inside-the-10 touches; 85% snap share","sixpt":0},{"name":"James Cook III","pos":"RB","rank":9,"erank":11,"edge":-2,"vor":85.1,"conf":"high","ok":true,"why":"59 red-zone touches; 27 inside-the-10 touches","sixpt":0},{"name":"Derrick Henry","pos":"RB","rank":10,"erank":14,"edge":-4,"vor":80.3,"conf":"vlow","ok":false,"why":"only 17 g / 55% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"De'Von Achane","pos":"RB","rank":11,"erank":9,"edge":2,"vor":101.5,"conf":"high","ok":true,"why":"12 TD on only 9.4 expected \u2014 TD luck won't repeat; 43 red-zone touches","sixpt":0},{"name":"Drake London","pos":"WR","rank":12,"erank":21,"edge":-9,"vor":67.6,"conf":"med","ok":true,"why":"30% target share; 91% snap share","sixpt":0},{"name":"CeeDee Lamb","pos":"WR","rank":13,"erank":20,"edge":-7,"vor":67.7,"conf":"med","ok":true,"why":"3 TD on 5.8 expected \u2014 positive regression; 25% target share","sixpt":0},{"name":"Justin Jefferson","pos":"WR","rank":14,"erank":38,"edge":-24,"vor":37.3,"conf":"high","ok":true,"why":"2 TD on 7.1 expected \u2014 positive regression; 31% target share; 94% snap share","sixpt":0},{"name":"Chase Brown","pos":"RB","rank":15,"erank":12,"edge":3,"vor":82.0,"conf":"vlow","ok":false,"why":"only 17 g / 0% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Rashee Rice","pos":"WR","rank":16,"erank":18,"edge":-2,"vor":74.6,"conf":"vlow","ok":false,"why":"only 8 g / 75% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Saquon Barkley","pos":"RB","rank":17,"erank":15,"edge":2,"vor":78.5,"conf":"high","ok":true,"why":"9 TD on 11.6 expected \u2014 positive regression; 50 red-zone touches; 27 inside-the-10 touches","sixpt":0},{"name":"Nico Collins","pos":"WR","rank":18,"erank":31,"edge":-13,"vor":44.6,"conf":"high","ok":true,"why":"24% target share","sixpt":0},{"name":"Ashton Jeanty","pos":"RB","rank":19,"erank":22,"edge":-3,"vor":62.0,"conf":"high","ok":true,"why":"44 red-zone touches; 19 inside-the-10 touches","sixpt":0},{"name":"George Pickens","pos":"WR","rank":20,"erank":27,"edge":-7,"vor":55.8,"conf":"high","ok":true,"why":"81% snap share","sixpt":0},{"name":"A.J. Brown","pos":"WR","rank":21,"erank":41,"edge":-20,"vor":32.6,"conf":"med","ok":true,"why":"29% target share; 91% snap share; changed teams (PHI->NE)","sixpt":0},{"name":"Kenneth Walker III","pos":"RB","rank":22,"erank":67,"edge":-45,"vor":3.8,"conf":"vlow","ok":false,"why":"only 17 g / 47% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Chris Olave","pos":"WR","rank":23,"erank":23,"edge":0,"vor":61.4,"conf":"high","ok":true,"why":"9 TD on only 5.5 expected \u2014 TD luck won't repeat; 29% target share; 84% snap share","sixpt":0},{"name":"Omarion Hampton","pos":"RB","rank":24,"erank":28,"edge":-4,"vor":53.7,"conf":"med","ok":true,"why":"only 9 games in 2025","sixpt":0},{"name":"Zay Flowers","pos":"WR","rank":25,"erank":51,"edge":-26,"vor":19.1,"conf":"high","ok":true,"why":"30% target share; 86% snap share","sixpt":0},{"name":"Josh Jacobs","pos":"RB","rank":26,"erank":17,"edge":9,"vor":74.9,"conf":"high","ok":true,"why":"58 red-zone touches; 32 inside-the-10 touches","sixpt":0},{"name":"Malik Nabers","pos":"WR","rank":27,"erank":54,"edge":-27,"vor":15.2,"conf":"vlow","ok":false,"why":"only 4 g / 80% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Kyren Williams","pos":"RB","rank":28,"erank":16,"edge":12,"vor":75.0,"conf":"med","ok":true,"why":"63 red-zone touches; 33 inside-the-10 touches; changed teams (LA->LAR)","sixpt":0},{"name":"Tetairoa McMillan","pos":"WR","rank":30,"erank":59,"edge":-29,"vor":9.7,"conf":"high","ok":true,"why":"26% target share; 87% snap share","sixpt":0},{"name":"Garrett Wilson","pos":"WR","rank":31,"erank":55,"edge":-24,"vor":14.6,"conf":"vlow","ok":false,"why":"only 7 g / 87% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"DeVonta Smith","pos":"WR","rank":32,"erank":73,"edge":-41,"vor":0.0,"conf":"high","ok":true,"why":"25% target share; 84% snap share","sixpt":0},{"name":"Josh Allen","pos":"QB","rank":33,"erank":47,"edge":-14,"vor":22.3,"conf":"high","ok":true,"why":"25 pass TD = +50 pts in 6-pt scoring; 14 TD on only 7.2 expected \u2014 TD luck won't repeat; 22 inside-the-10 touches","sixpt":50.0},{"name":"Javonte Williams","pos":"RB","rank":34,"erank":13,"edge":21,"vor":81.4,"conf":"high","ok":true,"why":"66 red-zone touches; 33 inside-the-10 touches","sixpt":0},{"name":"Breece Hall","pos":"RB","rank":35,"erank":34,"edge":1,"vor":40.6,"conf":"high","ok":true,"why":"5 TD on 7.6 expected \u2014 positive regression","sixpt":0},{"name":"Emeka Egbuka","pos":"WR","rank":36,"erank":62,"edge":-26,"vor":8.5,"conf":"high","ok":true,"why":"9.9 proj pts/g vs WR replacement","sixpt":0},{"name":"Tee Higgins","pos":"WR","rank":37,"erank":71,"edge":-34,"vor":0.7,"conf":"high","ok":true,"why":"11 TD on only 5.3 expected \u2014 TD luck won't repeat; 81% snap share","sixpt":0},{"name":"Travis Etienne Jr.","pos":"RB","rank":38,"erank":19,"edge":19,"vor":71.3,"conf":"med","ok":true,"why":"64 red-zone touches; 32 inside-the-10 touches; changed teams (JAX->NO)","sixpt":0},{"name":"Trey McBride","pos":"TE","rank":39,"erank":7,"edge":32,"vor":112.6,"conf":"high","ok":true,"why":"28% target share; 91% snap share","sixpt":0},{"name":"Davante Adams","pos":"WR","rank":40,"erank":25,"edge":15,"vor":59.3,"conf":"med","ok":true,"why":"25% target share; 23 inside-the-10 touches; changed teams (LA->LAR)","sixpt":0},{"name":"Cam Skattebo","pos":"RB","rank":41,"erank":35,"edge":6,"vor":40.5,"conf":"vlow","ok":false,"why":"only 8 g / 52% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Jameson Williams","pos":"WR","rank":42,"erank":82,"edge":-40,"vor":-9.6,"conf":"high","ok":true,"why":"7 TD on only 4.1 expected \u2014 TD luck won't repeat; 90% snap share","sixpt":0},{"name":"Ladd McConkey","pos":"WR","rank":43,"erank":78,"edge":-35,"vor":-3.6,"conf":"high","ok":true,"why":"9.2 proj pts/g vs WR replacement","sixpt":0},{"name":"D'Andre Swift","pos":"RB","rank":44,"erank":29,"edge":15,"vor":47.5,"conf":"high","ok":true,"why":"41 red-zone touches; 24 inside-the-10 touches","sixpt":0},{"name":"Brock Bowers","pos":"TE","rank":45,"erank":26,"edge":19,"vor":56.8,"conf":"med","ok":true,"why":"86% snap share","sixpt":0},{"name":"DJ Moore","pos":"WR","rank":46,"erank":102,"edge":-56,"vor":-36.7,"conf":"med","ok":true,"why":"85% snap share; changed teams (CHI->BUF)","sixpt":0},{"name":"Terry McLaurin","pos":"WR","rank":47,"erank":81,"edge":-34,"vor":-6.2,"conf":"med","ok":true,"why":"only 10 games in 2025","sixpt":0},{"name":"Bucky Irving","pos":"RB","rank":48,"erank":32,"edge":16,"vor":43.4,"conf":"med","ok":true,"why":"only 10 games in 2025","sixpt":0},{"name":"Jaylen Waddle","pos":"WR","rank":49,"erank":80,"edge":-31,"vor":-5.7,"conf":"med","ok":true,"why":"changed teams (MIA->DEN)","sixpt":0},{"name":"Rome Odunze","pos":"WR","rank":50,"erank":58,"edge":-8,"vor":11.2,"conf":"med","ok":true,"why":"88% snap share","sixpt":0},{"name":"Drake Maye","pos":"QB","rank":51,"erank":43,"edge":8,"vor":31.5,"conf":"high","ok":true,"why":"31 pass TD = +62 pts in 6-pt scoring","sixpt":62.0},{"name":"Quinshon Judkins","pos":"RB","rank":52,"erank":37,"edge":15,"vor":37.6,"conf":"vlow","ok":false,"why":"only 14 g / 50% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Bhayshul Tuten","pos":"RB","rank":53,"erank":110,"edge":-57,"vor":-92.0,"conf":"vlow","ok":false,"why":"only 15 g / 21% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Mike Evans","pos":"WR","rank":54,"erank":60,"edge":-6,"vor":9.7,"conf":"vlow","ok":false,"why":"only 8 g / 66% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Lamar Jackson","pos":"QB","rank":55,"erank":105,"edge":-50,"vor":-46.6,"conf":"med","ok":true,"why":"21 pass TD = +42 pts in 6-pt scoring","sixpt":42.0},{"name":"David Montgomery","pos":"RB","rank":56,"erank":90,"edge":-34,"vor":-16.5,"conf":"vlow","ok":false,"why":"only 17 g / 37% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Christian Watson","pos":"WR","rank":57,"erank":85,"edge":-28,"vor":-12.9,"conf":"med","ok":true,"why":"6 TD on only 2.7 expected \u2014 TD luck won't repeat; only 10 games in 2025","sixpt":0},{"name":"Joe Burrow","pos":"QB","rank":58,"erank":92,"edge":-34,"vor":-17.7,"conf":"vlow","ok":false,"why":"only 8 g / 88% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":34.0},{"name":"Luther Burden III","pos":"WR","rank":59,"erank":107,"edge":-48,"vor":-57.3,"conf":"vlow","ok":false,"why":"only 15 g / 40% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Courtland Sutton","pos":"WR","rank":60,"erank":53,"edge":7,"vor":16.5,"conf":"high","ok":true,"why":"85% snap share","sixpt":0},{"name":"Ollie Gordon II","pos":"RB","rank":61,"erank":111,"edge":-50,"vor":-112.9,"conf":"vlow","ok":false,"why":"only 17 g / 22% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Alec Pierce","pos":"WR","rank":62,"erank":91,"edge":-29,"vor":-16.8,"conf":"high","ok":true,"why":"6 TD on only 3.5 expected \u2014 TD luck won't repeat; 86% snap share","sixpt":0},{"name":"DK Metcalf","pos":"WR","rank":63,"erank":70,"edge":-7,"vor":1.6,"conf":"high","ok":true,"why":"87% snap share","sixpt":0},{"name":"Marvin Harrison Jr.","pos":"WR","rank":64,"erank":87,"edge":-23,"vor":-13.4,"conf":"med","ok":true,"why":"8.7 proj pts/g vs WR replacement","sixpt":0},{"name":"Parker Washington","pos":"WR","rank":65,"erank":84,"edge":-19,"vor":-12.8,"conf":"high","ok":true,"why":"8.7 proj pts/g vs WR replacement","sixpt":0},{"name":"Brian Thomas Jr.","pos":"WR","rank":66,"erank":86,"edge":-20,"vor":-13.4,"conf":"high","ok":true,"why":"8.7 proj pts/g vs WR replacement","sixpt":0},{"name":"Jaylen Warren","pos":"RB","rank":67,"erank":30,"edge":37,"vor":46.3,"conf":"vlow","ok":false,"why":"only 16 g / 51% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Rhamondre Stevenson","pos":"RB","rank":69,"erank":72,"edge":-3,"vor":0.0,"conf":"high","ok":true,"why":"10.1 proj pts/g vs RB replacement","sixpt":0},{"name":"Chris Godwin Jr.","pos":"WR","rank":70,"erank":93,"edge":-23,"vor":-17.8,"conf":"med","ok":true,"why":"only 9 games in 2025","sixpt":0},{"name":"TreVeyon Henderson","pos":"RB","rank":71,"erank":61,"edge":10,"vor":9.0,"conf":"vlow","ok":false,"why":"only 17 g / 46% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Michael Pittman Jr.","pos":"WR","rank":72,"erank":79,"edge":-7,"vor":-4.6,"conf":"med","ok":true,"why":"86% snap share; changed teams (IND->PIT)","sixpt":0},{"name":"Tony Pollard","pos":"RB","rank":73,"erank":65,"edge":8,"vor":5.1,"conf":"high","ok":true,"why":"10.4 proj pts/g vs RB replacement","sixpt":0},{"name":"Jakobi Meyers","pos":"WR","rank":74,"erank":66,"edge":8,"vor":4.7,"conf":"high","ok":true,"why":"3 TD on 5.6 expected \u2014 positive regression; 85% snap share","sixpt":0},{"name":"Jordan Addison","pos":"WR","rank":75,"erank":97,"edge":-22,"vor":-22.9,"conf":"high","ok":true,"why":"85% snap share","sixpt":0},{"name":"Quentin Johnston","pos":"WR","rank":76,"erank":68,"edge":8,"vor":3.0,"conf":"med","ok":true,"why":"8 TD on only 5.0 expected \u2014 TD luck won't repeat","sixpt":0},{"name":"Jayden Reed","pos":"WR","rank":77,"erank":89,"edge":-12,"vor":-16.0,"conf":"vlow","ok":false,"why":"only 5 g / 41% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"George Kittle","pos":"TE","rank":78,"erank":42,"edge":36,"vor":31.9,"conf":"med","ok":true,"why":"7 TD on only 4.1 expected \u2014 TD luck won't repeat; 81% snap share","sixpt":0},{"name":"Wan'Dale Robinson","pos":"WR","rank":79,"erank":33,"edge":46,"vor":40.9,"conf":"med","ok":true,"why":"30% target share; 91% snap share; changed teams (NYG->TEN)","sixpt":0},{"name":"Josh Downs","pos":"WR","rank":80,"erank":99,"edge":-19,"vor":-31.5,"conf":"high","ok":true,"why":"7.6 proj pts/g vs WR replacement","sixpt":0},{"name":"Rico Dowdle","pos":"RB","rank":81,"erank":45,"edge":36,"vor":26.7,"conf":"med","ok":true,"why":"changed teams (CAR->PIT)","sixpt":0},{"name":"Dak Prescott","pos":"QB","rank":82,"erank":39,"edge":43,"vor":33.1,"conf":"high","ok":true,"why":"30 pass TD = +60 pts in 6-pt scoring","sixpt":60.0},{"name":"Stefon Diggs","pos":"WR","rank":83,"erank":74,"edge":9,"vor":-0.4,"conf":"vlow","ok":false,"why":"only 17 g / 54% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Xavier Worthy","pos":"WR","rank":84,"erank":103,"edge":-19,"vor":-41.9,"conf":"high","ok":true,"why":"7.0 proj pts/g vs WR replacement","sixpt":0},{"name":"Deebo Samuel Sr.","pos":"WR","rank":85,"erank":77,"edge":8,"vor":-3.5,"conf":"med","ok":true,"why":"25% target share; changed teams (WAS->SF)","sixpt":0},{"name":"J.K. Dobbins","pos":"RB","rank":86,"erank":56,"edge":30,"vor":12.8,"conf":"vlow","ok":false,"why":"only 10 g / 51% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Jayden Daniels","pos":"QB","rank":87,"erank":95,"edge":-8,"vor":-20.0,"conf":"vlow","ok":false,"why":"only 7 g / 90% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":16.0},{"name":"Matthew Stafford","pos":"QB","rank":89,"erank":24,"edge":65,"vor":59.9,"conf":"med","ok":true,"why":"46 pass TD = +92 pts in 6-pt scoring; changed teams (LA->LAR)","sixpt":92.0},{"name":"Matthew Golden","pos":"WR","rank":90,"erank":109,"edge":-19,"vor":-88.4,"conf":"vlow","ok":false,"why":"only 14 g / 53% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Colston Loveland","pos":"TE","rank":91,"erank":76,"edge":15,"vor":-2.1,"conf":"high","ok":true,"why":"7.9 proj pts/g vs TE replacement","sixpt":0},{"name":"Jalen Hurts","pos":"QB","rank":92,"erank":83,"edge":9,"vor":-12.5,"conf":"high","ok":true,"why":"25 pass TD = +50 pts in 6-pt scoring; 8 TD on only 5.3 expected \u2014 TD luck won't repeat","sixpt":50.0},{"name":"Brock Purdy","pos":"QB","rank":93,"erank":52,"edge":41,"vor":18.2,"conf":"med","ok":true,"why":"20 pass TD = +40 pts in 6-pt scoring; only 9 games in 2025","sixpt":40.0},{"name":"Chuba Hubbard","pos":"RB","rank":94,"erank":98,"edge":-4,"vor":-30.8,"conf":"vlow","ok":false,"why":"only 15 g / 46% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Khalil Shakir","pos":"WR","rank":95,"erank":88,"edge":7,"vor":-15.4,"conf":"high","ok":true,"why":"8.5 proj pts/g vs WR replacement","sixpt":0},{"name":"Romeo Doubs","pos":"WR","rank":96,"erank":96,"edge":0,"vor":-22.4,"conf":"med","ok":true,"why":"changed teams (GB->NE)","sixpt":0},{"name":"Trevor Lawrence","pos":"QB","rank":98,"erank":48,"edge":50,"vor":20.2,"conf":"high","ok":true,"why":"29 pass TD = +58 pts in 6-pt scoring; 9 TD on only 4.7 expected \u2014 TD luck won't repeat","sixpt":58.0},{"name":"Caleb Williams","pos":"QB","rank":99,"erank":63,"edge":36,"vor":8.4,"conf":"high","ok":true,"why":"27 pass TD = +54 pts in 6-pt scoring","sixpt":54.0},{"name":"Jared Goff","pos":"QB","rank":100,"erank":69,"edge":31,"vor":1.8,"conf":"high","ok":true,"why":"34 pass TD = +68 pts in 6-pt scoring","sixpt":68.0},{"name":"Tyler Warren","pos":"TE","rank":101,"erank":40,"edge":61,"vor":33.0,"conf":"high","ok":true,"why":"5 TD on 8.4 expected \u2014 positive regression; 84% snap share","sixpt":0},{"name":"Patrick Mahomes","pos":"QB","rank":102,"erank":36,"edge":66,"vor":37.8,"conf":"high","ok":true,"why":"22 pass TD = +44 pts in 6-pt scoring; 5 TD on only 2.2 expected \u2014 TD luck won't repeat","sixpt":44.0},{"name":"Jalen Coker","pos":"WR","rank":103,"erank":108,"edge":-5,"vor":-61.0,"conf":"med","ok":true,"why":"5.5 proj pts/g vs WR replacement","sixpt":0},{"name":"Rashid Shaheed","pos":"WR","rank":104,"erank":104,"edge":0,"vor":-42.7,"conf":"high","ok":true,"why":"6.9 proj pts/g vs WR replacement","sixpt":0},{"name":"Jerry Jeudy","pos":"WR","rank":105,"erank":100,"edge":5,"vor":-34.5,"conf":"high","ok":true,"why":"84% snap share","sixpt":0},{"name":"Harold Fannin Jr.","pos":"TE","rank":107,"erank":57,"edge":50,"vor":12.8,"conf":"high","ok":true,"why":"7 TD on only 4.1 expected \u2014 TD luck won't repeat","sixpt":0},{"name":"Justin Herbert","pos":"QB","rank":109,"erank":50,"edge":59,"vor":19.6,"conf":"high","ok":true,"why":"26 pass TD = +52 pts in 6-pt scoring","sixpt":52.0},{"name":"Kyle Pitts Sr.","pos":"TE","rank":110,"erank":44,"edge":66,"vor":29.1,"conf":"high","ok":true,"why":"88% snap share","sixpt":0},{"name":"Bo Nix","pos":"QB","rank":111,"erank":49,"edge":62,"vor":19.7,"conf":"high","ok":true,"why":"25 pass TD = +50 pts in 6-pt scoring","sixpt":50.0},{"name":"Jaxson Dart","pos":"QB","rank":112,"erank":106,"edge":6,"vor":-48.5,"conf":"high","ok":true,"why":"15 pass TD = +30 pts in 6-pt scoring; 9 TD on only 4.2 expected \u2014 TD luck won't repeat","sixpt":30.0},{"name":"Kyle Monangai","pos":"RB","rank":113,"erank":94,"edge":19,"vor":-18.0,"conf":"vlow","ok":false,"why":"only 17 g / 41% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Dallas Goedert","pos":"TE","rank":114,"erank":64,"edge":50,"vor":5.8,"conf":"high","ok":true,"why":"11 TD on only 5.5 expected \u2014 TD luck won't repeat; 85% snap share","sixpt":0},{"name":"Kenny Gainwell","pos":"RB","rank":115,"erank":46,"edge":69,"vor":25.1,"conf":"vlow","ok":false,"why":"only 17 g / 50% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0},{"name":"Tre Tucker","pos":"WR","rank":116,"erank":101,"edge":15,"vor":-34.6,"conf":"high","ok":true,"why":"95% snap share","sixpt":0},{"name":"RJ Harvey","pos":"RB","rank":117,"erank":75,"edge":42,"vor":-1.2,"conf":"vlow","ok":false,"why":"only 17 g / 42% snaps in 2025 \u2014 2025 describes a role he no longer has, not his 2026 value","sixpt":0}],"unmatched":[{"name":"Jeremiyah Love","pos":"RB","rank":29},{"name":"Carnell Tate","pos":"WR","rank":68},{"name":"Jadarian Price","pos":"RB","rank":88},{"name":"Makai Lemon","pos":"WR","rank":97},{"name":"KC Concepcion","pos":"WR","rank":106},{"name":"Jonathon Brooks","pos":"RB","rank":108}]}</script>
 <script>
 /* ============================================================
    DRAFT CONSOLE — Sleeper live board
@@ -227,8 +289,14 @@ const WEIGHTS = {
   value:      1.6, // per pick they've fallen past their ADP
   valueCap:  30,   // cap on the falling-value bonus
   byeStack:  14,   // penalty per extra starter already on that bye
-  qbSixPt:   12,   // 6-point passing TD format bump
-  kdstEarly:900,   // effectively bans K/DST until the end
+  /* Measured, not assumed. 6-pt passing TDs lift the replacement QB nearly as
+     much as the elite one: the elite QB's edge over a streamer grows by only
+     ~0.4 pts/game (~7 pts a season). The old flat +12 here was ranking QBs above
+     materially better players. See build_edge.py and EDGE.thesis. */
+  qbSixPt:    4,   // 6-point passing TD format bump (measured, was 12)
+  edge:      0.6,  // per slot of 2025-model disagreement with ADP
+  kdstEarly:900,   // bans a kicker outright, and DEF only while waiting is safe
+  mustFill: 400,   // a required starter with no picks left to spare outranks everything
 };
 
 const CONFIG = {
@@ -236,6 +304,9 @@ const CONFIG = {
   mySlot: 3, teams: 12, rounds: 12, pollMs: 2000,
   fastPollMs: 1000, fastWithin: 3,   // poll faster when your pick is close
 };
+/* Frozen copy of the verified league shape. localStorage and the demo may both
+   write to CONFIG; neither is allowed to invent a round count. */
+const DEFAULTS = Object.freeze({...CONFIG});
 
 /* ---- 2. DATA ----------------------------------------------------------- */
 
@@ -259,9 +330,81 @@ for (const p of RANKS){
 /* Scarcity is POSITION-RELATIVE. QBs start at T5 and TEs at T5 on this board,
    so "elite" must mean "the best tiers that exist at THAT position", not T1-T2. */
 const POS_BANDS = {};
-for (const pos of ['QB','RB','WR','TE']){
+for (const pos of ['QB','RB','WR','TE','DST']){
   const tiers = [...new Set(RANKS.filter(p => p.pos === pos).map(p => p.tier))].sort((a,b)=>a-b);
   POS_BANDS[pos] = { elite: tiers.slice(0,2), mid: tiers.slice(2,4), late: tiers.slice(4,6) };
+}
+
+/* ---- 2a. EDGE (precomputed offline by build_edge.py) --------------------
+   2025 nflverse season re-scored under THIS league's exact rules, weighted by
+   opportunity rather than raw points, valued against this league's real roster
+   shape, then diffed against the ADP on the board. edge = board_rank - my_rank,
+   so positive means the board is sleeping on him. `ok:false` means the 2025
+   sample does not describe his 2026 role — shown, never asserted. */
+
+const EDGE = JSON.parse(document.getElementById('edgeData').textContent);
+const edgeBy = new Map(EDGE.players.map(p => [norm(p.name), p]));
+
+function renderEdge(){
+  const T = EDGE.thesis || {};
+  $('thesis').innerHTML = T.spread_gain_season === undefined ? '' :
+    `<span class="hd">The 6-point rule is real, but it is small — and it favours the wrong QBs</span>
+     6-pt passing TDs lift <b>every</b> QB, replacement included. Streaming QB
+     (<b>${esc(T.replacement_qb_name)}</b>-tier) goes ${T.replacement_qb_4pt_pg} &rarr;
+     <b>${T.replacement_qb_6pt_pg}</b> pts/g while a top-6 QB goes ${T.top6_qb_4pt_pg} &rarr;
+     <b>${T.top6_qb_6pt_pg}</b>. The elite QB's <i>advantage</i> grows by only
+     <b>${T.spread_gain_pg} pts/g (~${T.spread_gain_season} pts all season)</b> — about one
+     good WR game. And because rushing TDs are already 6 points in every format, the rule
+     rewards high-volume <b>pocket passers</b>, not the dual-threats. Best QB by value over
+     replacement is worth ~60 pts; the best RB is worth ~227. <b>Wait on QB.</b>`;
+
+  const list = EDGE.players.filter(p => p.ok);
+  const row = (p, dir) => `
+    <div class="erow ${dir}">
+      <span class="d">${p.edge > 0 ? '+' : ''}${p.edge}</span>
+      <span class="b"><span class="nm">${esc(p.name)}</span>
+        <span class="rk">${p.pos} · board #${p.rank} &rarr; my #${p.erank} · VOR ${p.vor}</span>
+        <div class="wy">${esc(p.why)}</div></span>
+    </div>`;
+  $('edgeUp').innerHTML = list.slice().sort((a,b)=>b.edge-a.edge).slice(0,8)
+    .map(p=>row(p,'up')).join('') || '<div class="empty">No confident edges.</div>';
+  $('edgeDn').innerHTML = list.slice().sort((a,b)=>a.edge-b.edge).slice(0,8)
+    .map(p=>row(p,'dn')).join('') || '<div class="empty">No confident fades.</div>';
+}
+
+/* ---- 2b. ROSTER SLOTS -------------------------------------------------
+   Sleeper roster_positions, verified live:
+   QB RB RB WR WR TE FLEX DEF BN BN BN BN  (12 slots, 12 rounds) + 2 IR.
+   Order matters: the assigner walks this list and drops each pick into the
+   FIRST empty slot that accepts it, so a 3rd RB / 3rd WR / 2nd TE naturally
+   overflows to FLEX and then to the bench. accepts:null = accepts anything. */
+
+const SLOTS = [
+  {id:'QB',   accepts:['QB'],           starter:true},
+  {id:'RB1',  accepts:['RB'],           starter:true},
+  {id:'RB2',  accepts:['RB'],           starter:true},
+  {id:'WR1',  accepts:['WR'],           starter:true},
+  {id:'WR2',  accepts:['WR'],           starter:true},
+  {id:'TE',   accepts:['TE'],           starter:true},
+  {id:'FLEX', accepts:['RB','WR','TE'], starter:true},
+  {id:'DEF',  accepts:['DST'],          starter:true},
+  {id:'BN1',  accepts:null,             starter:false},
+  {id:'BN2',  accepts:null,             starter:false},
+  {id:'BN3',  accepts:null,             starter:false},
+  {id:'BN4',  accepts:null,             starter:false},
+];
+const IR_SLOTS = 2;
+
+/* picks MUST arrive in draft order — earlier picks claim the better slot. */
+function assignSlots(mine){
+  const slots = SLOTS.map(s => ({...s, player:null}));
+  const overflow = [];
+  for (const p of mine){
+    const s = slots.find(s => !s.player &&
+      (s.accepts === null || s.accepts.includes(p.pos)));
+    if (s) s.player = p; else overflow.push(p);
+  }
+  return {slots, overflow};
 }
 
 /* ---- 3. STATE ---------------------------------------------------------- */
@@ -272,6 +415,8 @@ const S = {
   picks:[],               // [{pickNo, round, slot, name, pos, team, ranked}]
   taken:new Set(),        // normalized names + DST team codes
   seen:0, timer:null, demoTimer:null, lastErr:'',
+  gen:0,                  // bumped on every mode switch; stale fetches check it
+  sig:null,               // identity of the last ingested pick list
 };
 
 /* ---- 4. SNAKE MATH ----------------------------------------------------- */
@@ -297,10 +442,13 @@ function derive(){
 
   // roster counts + byes from my ranked picks
   const have = {QB:0,RB:0,WR:0,TE:0,DST:0}, byes = {};
-  for (const p of mine){
-    if (have[p.pos] !== undefined) have[p.pos]++;
-    if (p.ranked?.bye) byes[p.ranked.bye] = (byes[p.ranked.bye]||0) + 1;
-  }
+  for (const p of mine) if (have[p.pos] !== undefined) have[p.pos]++;
+  /* Bye stacking only matters for players who actually START. Counting bench
+     byes here made two backups on the same week cancel out a full starter-need
+     bonus and quietly demote the right pick. */
+  for (const s of assignSlots(mine).slots)
+    if (s.starter && s.player?.ranked?.bye)
+      byes[s.player.ranked.bye] = (byes[s.player.ranked.bye]||0) + 1;
   const need = {}; let starters = 0;
   for (const k in ROSTER_NEED){
     need[k] = Math.max(0, ROSTER_NEED[k] - have[k]);
@@ -315,7 +463,7 @@ function derive(){
 
   // tier supply per position
   const supply = {};
-  for (const pos of ['QB','RB','WR','TE']){
+  for (const pos of ['QB','RB','WR','TE','DST']){
     const a = avail.filter(p => p.pos === pos), b = POS_BANDS[pos];
     const inB = band => a.filter(p => band.includes(p.tier)).length;
     supply[pos] = {
@@ -327,6 +475,19 @@ function derive(){
   }
 
   const rd = roundOfPick(curPick);
+  /* DEF is a REQUIRED starter and there are only 12 rounds. Track how many of MY
+     picks remain against how many required slots are still open: once those are
+     equal, every remaining pick MUST fill a starter and there is no room left for
+     an upside swing. This is what stops the board recommending a backup QB at the
+     final pick while the DEF slot sits empty. */
+  const myRemaining  = myPicks().filter(p => p >= curPick).length;
+  const requiredLeft = Object.values(need).reduce((a,b)=>a+b,0) + flexOpen;
+  const mustFill     = myRemaining <= requiredLeft;
+  const dstLeft      = supply.DST ? supply.DST.total : 0;
+  /* Wait on DEF only while waiting is actually safe: enough of my own picks left
+     to cover every other hole AND still take a defense, with defenses to spare. */
+  const canWaitOnDef = myRemaining > requiredLeft && dstLeft > 2;
+
   const scored = avail.map(p => {
     let s = 200 - p.rank, why = [];
 
@@ -349,14 +510,34 @@ function derive(){
 
     if (p.bye && byes[p.bye]){ s -= WEIGHTS.byeStack * byes[p.bye]; why.push(`bye ${p.bye} stack`); }
     if (p.pos === 'QB'){ s += WEIGHTS.qbSixPt; why.push('6-pt pass TD'); }
-    if ((p.pos === 'DST' || p.pos === 'K') && rd <= CONFIG.rounds - BENCH_ROUNDS_FOR_KDST){
-      s -= WEIGHTS.kdstEarly;
+    if (p.pos === 'K'){
+      s -= WEIGHTS.kdstEarly;             // no kicker slot exists in this league, ever
+    } else if (p.pos === 'DST'){
+      if (need.DST > 0 && !canWaitOnDef){
+        s += WEIGHTS.mustFill;            // out of runway — the required DEF comes first
+        why.push(dstLeft <= 2 ? `only ${dstLeft} DEF left` : 'last chance to fill DEF');
+      } else if (canWaitOnDef){
+        s -= WEIGHTS.kdstEarly;           // safe to wait
+      }
+    } else if (mustFill && need[p.pos] === 0 &&
+               !(flexOpen > 0 && ['RB','WR','TE'].includes(p.pos))){
+      s -= WEIGHTS.mustFill;              // a luxury pick you can no longer afford
     }
-    return {...p, score:s, why};
+    const e = edgeBy.get(norm(p.name));
+    // Edge nudges the ranking; it never overrides it, and it is muted once that
+    // starting slot is already filled so a second QB cannot ride a price signal
+    // into the recommendations.
+    if (e && e.ok && WEIGHTS.edge){
+      const live = (need[p.pos] > 0) || (flexOpen > 0 && ['RB','WR','TE'].includes(p.pos));
+      s += e.edge * WEIGHTS.edge * (live ? 1 : 0.25);
+      if (Math.abs(e.edge) >= 20) why.push(`${e.edge > 0 ? '+' : ''}${e.edge} vs ADP (2025 model)`);
+    }
+    return {...p, score:s, why, edge:e};
   }).sort((a,b) => b.score - a.score);
 
   return {curPick, rd, onClock, mine, myNext, until: myNext ? myNext - curPick : null,
-          need, have, flexOpen, byes, avail, scored, supply, starters};
+          need, have, flexOpen, byes, avail, scored, supply, starters,
+          myRemaining, requiredLeft, mustFill, canWaitOnDef};
 }
 
 /* ---- 6. SLEEPER API ---------------------------------------------------- */
@@ -370,6 +551,7 @@ async function get(path){
 
 async function resolveDraft(id){
   // Accept a league ID or a draft ID; figure out which.
+  let leagueErr = null;
   try{
     const lg = await get(`/league/${id}`);
     if (lg && lg.league_id){
@@ -378,9 +560,14 @@ async function resolveDraft(id){
       drafts.sort((a,b) => (b.start_time||0) - (a.start_time||0));
       return {draft: drafts[0], leagueName: lg.name || 'League'};
     }
-  }catch(e){ /* fall through and try it as a draft id */ }
-  const d = await get(`/draft/${id}`);
-  return {draft: d, leagueName: d?.metadata?.name || 'Draft'};
+  }catch(e){ leagueErr = e; }   // keep it: a real league failure must not be
+                                // re-reported as a bogus 404 on the draft path
+  try{
+    const d = await get(`/draft/${id}`);
+    return {draft: d, leagueName: d?.metadata?.name || 'Draft'};
+  }catch(e){
+    throw leagueErr || e;
+  }
 }
 
 function applyDraftSettings(d){
@@ -404,6 +591,7 @@ function ingest(raw){
       pickNo: p.pick_no, round: p.round,
       slot: p.draft_slot || slotOfPick(p.pick_no),
       name, pos: ranked?.pos || (pos === 'DEF' ? 'DST' : pos), team, ranked,
+      injury: (m.injury_status || '').trim(),
     };
   }).sort((a,b) => a.pickNo - b.pickNo);
 
@@ -418,9 +606,14 @@ function ingest(raw){
 async function tick(){
   if (!S.draftId) return;
   try{
+    const gen = S.gen;
     const raw = await get(`/draft/${S.draftId}/picks`);
-    const changed = raw.length !== S.picks.length;
-    if (changed){ ingest(raw); render(true); }
+    if (gen !== S.gen) return;     // mode changed mid-flight — discard this response
+    /* Length alone is not identity: a corrected or replaced pick keeps the count
+       the same, and leftover demo picks can match the live count exactly. */
+    const sig = raw.length + ':' + raw.map(p => p.pick_no + '/' + (p.player_id || '')).join();
+    const changed = sig !== S.sig;
+    if (changed){ S.sig = sig; ingest(raw); render(true); }
     setStatus('live', `live · ${S.picks.length} picks in`);
     S.lastErr = '';
     schedule();
@@ -444,6 +637,9 @@ async function connect(){
   const id = (document.getElementById('leagueId').value || '').trim();
   if (!id){ setStatus('err','enter a league or draft ID'); show('setup'); return; }
   stopDemo(); clearTimeout(S.timer);
+  S.gen++;                                   // invalidate any in-flight poll
+  S.picks = []; S.taken = new Set(); S.sig = null; S.seen = 0;   // never inherit demo state
+  CONFIG.rounds = DEFAULTS.rounds;           // Sleeper may override; demo may not
   CONFIG.leagueId = id;
   CONFIG.mySlot = +document.getElementById('mySlot').value || 3;
   CONFIG.teams  = +document.getElementById('teams').value  || 12;
@@ -460,6 +656,7 @@ async function connect(){
     tag.textContent = `${leagueName} · ${CONFIG.teams}-team · ${CONFIG.rounds} rds · slot ${CONFIG.mySlot}`;
     document.getElementById('rateTag').hidden = false;
     document.getElementById('setup').hidden = true;
+    render(false);          // repaint immediately: a pre-draft league never ticks
     await tick();
   }catch(e){
     setStatus('err', e.message);
@@ -476,10 +673,11 @@ function stopDemo(){ clearInterval(S.demoTimer); S.demoTimer = null; }
 
 function startDemo(){
   clearTimeout(S.timer); stopDemo();
-  S.mode='demo'; S.draftId=null; S.picks=[]; S.taken=new Set(); S.seen=0;
+  S.gen++;                // discard any live poll already in flight
+  S.mode='demo'; S.draftId=null; S.picks=[]; S.taken=new Set(); S.seen=0; S.sig=null;
   CONFIG.teams = +document.getElementById('teams').value || 12;
   CONFIG.mySlot = +document.getElementById('mySlot').value || 3;
-  CONFIG.rounds = 15;
+  CONFIG.rounds = DEFAULTS.rounds;      // this league is 12 rounds, not 15
   document.getElementById('setup').hidden = true;
   const tag = document.getElementById('leagueTag');
   tag.hidden = false;
@@ -510,7 +708,7 @@ function demoStep(){
   if (!pick) { stopDemo(); return; }
   const n = v.curPick;
   S.picks.push({pickNo:n, round:roundOfPick(n), slot:slotOfPick(n),
-                name:pick.name, pos:pick.pos, team:pick.team, ranked:pick});
+                name:pick.name, pos:pick.pos, team:pick.team, ranked:pick, injury:''});
   S.taken.add(pick.pos === 'DST' ? pick.team.toUpperCase() : norm(pick.name));
   render(true);
 }
@@ -552,8 +750,12 @@ function render(animate){
       <td><span class="pos ${p.pos}">${p.pos}</span></td>
       <td class="mono meta">${p.bye||'—'}</td>
       <td class="mono num meta">${p.adp ?? '—'}</td>
+      <td class="mono num">${p.edge
+        ? `<span class="edelta ${!p.edge.ok?'na':p.edge.edge>0?'up':'dn'}" title="${esc(p.edge.why)}">${
+            p.edge.ok ? (p.edge.edge>0?'+':'')+p.edge.edge : '·'}</span>`
+        : '<span class="edelta na">—</span>'}</td>
       <td><span class="tierchip">T${p.tier}</span></td>
-    </tr>`).join('') || '<tr><td colspan="6" class="empty">Board exhausted — our top 120 are all gone.<br>Rounds 11-12 are past our rankings: take a DEFENSE in the final round, and for the other pick grab the best upside left in Sleeper\'s own list (a backup RB attached to a starter is the best swing).</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="7" class="empty">Board exhausted — all ${RANKS.length} ranked players are gone.<br>Rounds 11-12 are past our rankings: take a DEFENSE in the final round, and for the other pick grab the best upside left in Sleeper\'s own list (a backup RB attached to a starter is the best swing).</td></tr>';
   $('baSub').textContent = `${v.avail.length} of ${RANKS.length} left`;
 
   // needs
@@ -567,6 +769,13 @@ function render(animate){
   // alerts
   const al = [];
   if (v.until === 0) al.push(['good', `Your pick. Board says <b>${esc(v.scored[0]?.name||'—')}</b>.`]);
+  if (v.need.DST > 0){
+    const dl = v.supply.DST.total, rem = v.myRemaining;
+    if (dl === 0)      al.push(['bad', `<b>No defenses left on the board</b> and DEF is unfilled — take any DEF from Sleeper's list.`]);
+    else if (rem <= 1) al.push(['bad', `<b>Last pick — take a DEFENSE.</b> ${dl} left on the board.`]);
+    else if (dl <= 3)  al.push(['bad', `Only <b>${dl}</b> defenses left and you still need one — take one now.`]);
+    else if (rem <= 2) al.push(['warn',`DEF still unfilled with <b>${rem}</b> picks left.`]);
+  }
   for (const pos of ['RB','WR','TE','QB']){
     const s = v.supply[pos], starving = v.need[pos] > 0;
     if (s.elite === 0 && s.mid === 0 && s.total > 0){
@@ -591,14 +800,46 @@ function render(animate){
       <span class="cnt mono">${s.elite}<span style="color:var(--faint)">e</span> ${s.mid}<span style="color:var(--faint)">m</span> · ${s.total}</span></div>`;
   }).join('');
 
-  // roster
-  $('roster').innerHTML = v.mine.length ? v.mine.map(p => `
-    <div class="ritem"><span class="rd mono">R${p.round}</span>
-      <span class="pos ${p.pos||'K'}">${p.pos||'?'}</span>
-      <span class="pname">${esc(p.name)}</span>
-      <span class="meta">${p.ranked?.bye?('bye '+p.ranked.bye):''}</span></div>`).join('')
-    : '<div class="empty">Nothing drafted yet.</div>';
-  $('rosterSub').textContent = v.mine.length ? `${v.mine.length} picks` : '';
+  // roster slots — see what the team actually looks like, not just counts
+  const {slots, overflow} = assignSlots(v.mine);
+  const filled  = slots.filter(s => s.player).length;
+  const left    = SLOTS.length - filled;
+  const openStr = slots.filter(s => !s.player && s.starter);
+  $('slotCount').innerHTML =
+    `<span class="big">${filled}</span><span class="rest">of ${SLOTS.length} filled` +
+    `${left ? ` — <b>${left}</b> spot${left===1?'':'s'} left` : ' — roster complete'}</span>` +
+    (openStr.length
+      ? `<span class="gapwarn">${openStr.length} starter${openStr.length===1?'':'s'} unfilled<br>` +
+        `<span style="font-weight:600">${openStr.map(s=>s.id).join(' · ')}</span></span>`
+      : (filled ? '<span class="gapok">starting lineup set</span>' : ''));
+
+  const cell = s => {
+    if (s.player){
+      const p = s.player, r = p.ranked;
+      const inj = (p.injury && !/^(ACT|null)$/i.test(p.injury)) ? p.injury : '';
+      return `<div class="slot filled p${p.pos||'DST'}">
+        <span class="sl">${s.id}</span>
+        <span class="sp">${esc(p.name)}</span>
+        <span class="sm">${esc(p.pos||'?')}${p.team?' · '+esc(p.team):''}` +
+        `${r&&r.bye?' · bye '+r.bye:''}${inj?` · <span class="inj">${esc(inj)}</span>`:''}</span></div>`;
+    }
+    return `<div class="slot open ${s.starter?'starter':'bench'}">
+      <span class="sl">${s.id}</span>
+      <span class="sp">${s.starter?'EMPTY — STARTER':'empty'}</span></div>`;
+  };
+  $('slots').innerHTML =
+    '<div class="slotsec">Starters (8)</div>' +
+    slots.filter(s=>s.starter).map(cell).join('') +
+    '<div class="slotsec">Bench (4)</div>' +
+    slots.filter(s=>!s.starter).map(cell).join('') +
+    '<div class="slotsec">IR (2) — post-draft stash, cannot be drafted into</div>' +
+    Array.from({length:IR_SLOTS},(_,i)=>
+      `<div class="slot open ir"><span class="sl">IR${i+1}</span><span class="sp">empty</span></div>`).join('') +
+    (overflow.length ? '<div class="slotsec" style="color:var(--bad)">Over the limit — '+
+      overflow.length+' pick'+(overflow.length===1?'':'s')+' with no roster spot</div>' +
+      overflow.map(p=>`<div class="slot filled p${p.pos||'DST'}"><span class="sl">EXTRA</span>
+        <span class="sp">${esc(p.name)}</span><span class="sm">${esc(p.pos||'?')}</span></div>`).join('') : '');
+  $('rosterSub').textContent = v.mine.length ? `${v.mine.length} pick${v.mine.length===1?'':'s'}` : '';
 
   // feed
   const recent = S.picks.slice().reverse().slice(0,40);
@@ -650,7 +891,9 @@ function load(){
     if (s.mySlot)   $('mySlot').value   = s.mySlot;
     if (s.teams)    $('teams').value    = s.teams;
     if (s.pollMs)   $('pollMs').value   = s.pollMs;
-    Object.assign(CONFIG, s);
+    // only these four are user settings; rounds comes from Sleeper or DEFAULTS
+    for (const k of ['leagueId','mySlot','teams','pollMs'])
+      if (s[k] !== undefined) CONFIG[k] = s[k];
   }catch(e){}
 }
 
@@ -661,9 +904,10 @@ $('demoBtn').onclick   = startDemo;
 $('leagueId').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 
 load();
+renderEdge();
 setStatus('idle', 'not connected — enter a league ID, or run the demo');
 render(false);
-window.DRAFT = {S, CONFIG, WEIGHTS, derive, render, startDemo, connect};  // console access
+window.DRAFT = {S, CONFIG, WEIGHTS, derive, render, startDemo, connect, assignSlots, SLOTS, norm, EDGE, edgeBy, renderEdge};  // console access
 
 </script>
 </body>

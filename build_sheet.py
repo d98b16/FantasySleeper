@@ -43,7 +43,9 @@ ws.merge_cells("A1:F1")
 banner = ("VERIFIED FROM SLEEPER — \"GovSmart Gridiron\":  12-team snake  •  0.5 PPR  •  6-PT passing TDs  •  $100 FAAB  •  your slot #3  •  "
           "draft Fri Sep 4, 5:30 PM ET, 90s pick timer.   "
           "ROSTER: QB / RB / RB / WR / WR / TE / FLEX / DEF + 4 BENCH — only 12 rounds, NO KICKER, and a DEFENSE is a required starter. "
-          "2 IR slots let you stash an injured guy. 6-pt pass TDs lift every QB — take a top-6 QB by rounds 5-8.")
+          "2 IR slots let you stash an injured guy. "
+          "6-pt pass TDs lift EVERY QB including the streamer, so the elite QB's edge grows only ~7 pts ALL SEASON "
+          "(measured on 2025 data) — WAIT ON QB until round 9+, and prefer high-volume pocket passers over dual-threats.")
 ws["A2"] = banner
 ws["A2"].font = F(9, italic=True, color="B45309")
 ws["A2"].fill = fill("FFF2CC")
@@ -72,11 +74,11 @@ plan = [
     ("2", "22", "18-25", "Kenneth Walker III or Omarion Hampton (anchor an RB)", "Ashton Jeanty if he slides (ankle discount); Nico Collins / A.J. Brown (WR)", "RB dries up fast. Grab your RB1 at the turn."),
     ("3", "27", "24-31", "Malik Nabers or Zay Flowers (WR); Kyren Williams (RB)", "Chris Olave; Jeremiyah Love; DeVonta Smith", "You pick 22 & 27 back-to-back. Take whichever position you skipped at 22."),
     ("4", "46", "43-52", "Brock Bowers (elite-TE edge) OR Terry McLaurin / DJ Moore (WR)", "Bucky Irving; Quinshon Judkins (RB)", "Only 12 rounds — Bowers here locks TE and frees every later pick."),
-    ("5", "51", "48-58", "Lamar Jackson (6-pt pass-TD stud) if he slides — or RB Quinshon Judkins / WR Mike Evans", "Drake Maye / Joe Burrow; David Montgomery; Bhayshul Tuten", "Elite QB is worth it in your format. Don't leave QB past round 8."),
-    ("6", "70", "60-72", "DK Metcalf / Marvin Harrison Jr. (WR upside)", "Dak Prescott / Jayden Daniels (QB); TreVeyon Henderson (RB)", "Fill your last open starting WR or RB here."),
+    ("5", "51", "48-58", "RB Quinshon Judkins or WR Mike Evans — keep stacking starters", "Bucky Irving; Rome Odunze; Jaylen Waddle", "Do NOT take a QB here. Top QB is worth ~60 pts over replacement; a top RB is worth ~227."),
+    ("6", "70", "60-72", "DK Metcalf / Marvin Harrison Jr. (WR upside)", "TreVeyon Henderson (RB); Christian Watson", "Fill your last open starting WR or RB here. Still not QB."),
     ("7", "75", "72-80", "Jordan Addison / Jayden Reed (WR)", "Tony Pollard (RB); a starting TE if you still need one", "Bench is only 4 deep — starters beat lottery tickets."),
-    ("8", "94", "87-99", "Jalen Hurts or Jayden Daniels (QB) — if you waited", "Matthew Golden / Khalil Shakir (WR); Chuba Hubbard (RB)", "Last comfortable QB window. Hurts/Daniels here is a steal in 6-pt."),
-    ("9", "99", "94-104", "Best FLEX — Tyler Warren (TE) or Makai Lemon / Matthew Golden (WR)", "Patrick Mahomes if QB still open; an RB handcuff", "Your 7 offensive starters should be filled by the end of this pick."),
+    ("8", "94", "87-99", "Finish your 7 offensive starters — best WR/RB/TE left", "Tyler Warren / Kyle Pitts (TE); Matthew Golden (WR)", "Every starter filled before you spend a pick on QB."),
+    ("9", "99", "94-104", "QB NOW — Stafford / Prescott / Herbert / Lawrence / Mahomes", "Best FLEX left if two QBs you like are still there", "The QB window. 2025: Stafford +92 pts from the 6-pt rule vs Allen +50, at 56 picks cheaper."),
     ("10", "118", "110-123", "Handcuff your RB1/RB2 (RJ Harvey, Jonathon Brooks)", "Kyle Pitts (TE2); Justin Herbert / Bo Nix (QB2)", "Only 4 bench spots — protect the studs you already paid for."),
     ("11", "123", "Best avail.", "Best upside swing left on the board", "2nd TE or QB if you're thin there", "Last real value pick. Ceiling over floor."),
     ("12", "142", "Last pick", "DEFENSE — Seattle / Denver / Houston (best Week-1 matchup)", "—", "NO KICKER in this league. DEF is a required starter — this is the pick for it."),
@@ -106,6 +108,7 @@ scenarios = [
     "GIBBS OR BIJAN SLIDES TO 3: take him. Then go WR + WR at 22/27 (A.J. Brown / Nico + Nabers / Flowers) — your RB1 is already banked.",
     "JEANTY FALLS TO 22: ankle discount, not a red flag — and you have 2 IR slots, so a slow start is survivable. Otherwise Walker is the safe anchor.",
     "ROSTER SHAPE: 12 rounds, 8 starters (QB/RB/RB/WR/WR/TE/FLEX/DEF), 4 bench, NO KICKER. Every pick is a roster spot — there is no room for dead weight.",
+    "QB, MEASURED (2025 nflverse, re-scored to 6-pt): the rule lifts the STREAMER from 17.4 to 20.9 pts/g and the top-6 from 20.7 to 24.5 — the elite QB's ADVANTAGE grows just 0.4 pts/g (~7 pts a season). Rushing TDs are already 6 pts in every format, so pocket passers gain most: Stafford +92, Goff +68, Maye +62 vs Allen +50, Lamar +42. Wait until round 9.",
 ]
 sr = r + 1
 sb = ws.cell(sr, 1, "TURN SCENARIOS — PICKS 22 & 27 (you pick back-to-back)")
@@ -248,9 +251,18 @@ board = [
     ("Kenny Gainwell","RB","TB",10,"",10,""),
     ("Tre Tucker","WR","LV",13,"",10,""),
     ("RJ Harvey","RB","DEN",10,"",10,"Handcuff (Dobbins)"),
-    ("Seattle D/ST","DST","SEA",11,"",10,"REQUIRED starter — take one in R12"),
-    ("Denver D/ST","DST","DEN",10,"",10,"REQUIRED starter — take one in R12"),
-    ("Houston D/ST","DST","HOU",8,"",10,"REQUIRED starter — take one in R12"),
+    ("HOU D/ST","DST","HOU",8,"",10,"DEF #1 in 2025 (146 pts, 8.6/g) — REQUIRED starter, take one by R11"),
+    ("SEA D/ST","DST","SEA",11,"",10,"DEF #2 in 2025 (140 pts, 8.2/g) — REQUIRED starter, take one by R11"),
+    ("DEN D/ST","DST","DEN",10,"",10,"DEF #3 in 2025 (137 pts, 8.1/g) — REQUIRED starter, take one by R11"),
+    ("MIN D/ST","DST","MIN",6,"",10,"DEF #4 in 2025 (129 pts, 7.6/g) — REQUIRED starter, take one by R11"),
+    ("LAR D/ST","DST","LAR",11,"",10,"DEF #5 in 2025 (128 pts, 7.5/g) — REQUIRED starter, take one by R11"),
+    ("JAX D/ST","DST","JAX",7,"",10,"DEF #6 in 2025 (128 pts, 7.5/g) — REQUIRED starter, take one by R11"),
+    ("CLE D/ST","DST","CLE",11,"",10,"DEF #7 in 2025 (127 pts, 7.5/g) — REQUIRED starter, take one by R11"),
+    ("PHI D/ST","DST","PHI",10,"",10,"DEF #8 in 2025 (125 pts, 7.3/g) — REQUIRED starter, take one by R11"),
+    ("ATL D/ST","DST","ATL",11,"",10,"DEF #9 in 2025 (117 pts, 6.9/g) — REQUIRED starter, take one by R11"),
+    ("PIT D/ST","DST","PIT",9,"",10,"DEF #10 in 2025 (117 pts, 6.9/g) — REQUIRED starter, take one by R11"),
+    ("CHI D/ST","DST","CHI",10,"",10,"DEF #11 in 2025 (114 pts, 6.7/g) — REQUIRED starter, take one by R11"),
+    ("LAC D/ST","DST","LAC",7,"",10,"DEF #12 in 2025 (108 pts, 6.3/g) — REQUIRED starter, take one by R11"),
 ]
 
 wb2["A1"] = "BIG BOARD — 2026 Half-PPR (Top 120)"
@@ -317,11 +329,17 @@ wb2.conditional_formatting.add(
 from openpyxl.formatting.rule import CellIsRule
 wbT = wb.create_sheet("Live Tracker")
 wbT.sheet_properties.tabColor = "CC0000"
-BB_POS = "'Big Board'!$D$5:$D$124"
-BB_TIER = "'Big Board'!$B$5:$B$124"
-BB_BYE = "'Big Board'!$F$5:$F$124"
-BB_DR = "'Big Board'!$I$5:$I$124"
-BB_MINE = "'Big Board'!$J$5:$J$124"
+# Derived from the Big Board rows we actually wrote (hrow2+1 .. last), never
+# hardcoded. A literal $5:$124 happens to be right at exactly 120 players and
+# silently points at the wrong cells the moment the board changes length --
+# the same class of bug that already bit the CSV once.
+BB_FIRST, BB_LAST = hrow2 + 1, last
+def _bb(col):
+    return "'Big Board'!$%s$%d:$%s$%d" % (col, BB_FIRST, col, BB_LAST)
+BB_POS, BB_TIER, BB_BYE, BB_DR, BB_MINE = (_bb(c) for c in "DBFIJ")
+assert BB_LAST - BB_FIRST + 1 == len(board), \
+    "Big Board range %d-%d covers %d rows but board has %d" % (
+        BB_FIRST, BB_LAST, BB_LAST - BB_FIRST + 1, len(board))
 
 wbT["A1"] = "LIVE DRAFT TRACKER — computes as you mark the Big Board"
 wbT["A1"].font = F(15, bold=True, color=NAVY)
@@ -468,7 +486,11 @@ pos_block(wb3, 16, "TIGHT ENDS", POS_COLOR["TE"], TE)
 wb3.freeze_panes = "A3"
 wb3["U1"] = "ADP '-' = expert-rank tier (beyond live top-60 ADP)"
 wb3["U1"].font = F(9, italic=True, color="777777")
-qbn = wb3.cell(20, 11, "6-PT PASS TDs: draft QBs ~1 round earlier than ADP. Elite dual-threats (Allen, Jackson, Daniels, Hurts) gain the most; the streaming baseline rises too, so don't reach into rounds 1-3.")
+qbn = wb3.cell(20, 11, "6-PT PASS TDs — WHAT THE DATA ACTUALLY SAYS: the rule lifts every QB, "
+    "streamer included, so the elite QB's edge over a streamer grows only ~7 pts across a whole season. "
+    "And because rushing TDs are already 6 pts in EVERY format, dual-threats gain the LEAST: "
+    "Stafford +92 / Goff +68 / Maye +62 vs Allen +50 / Lamar +42. Wait on QB until round 9, then take "
+    "the highest-volume passer left. Source: build_edge.py on 2025 nflverse.")
 qbn.font = F(9, italic=True, color="B45F06"); qbn.alignment = LEFTTOP
 wb3.merge_cells(start_row=20, start_column=11, end_row=25, end_column=14)
 
@@ -502,7 +524,7 @@ row = section(wb4, row, "VALUES (talent > draft cost — target these)", "137333
     ("Breece Hall (RB, NYJ)", "Groin now, but RB1 talent at an RB2 price — buy the dip if healthy."),
     ("Jameson Williams (WR, DET)", "Big-play ceiling in a loaded offense."),
     ("TreVeyon Henderson (RB, NE)", "Explosive; can seize the NE backfield."),
-    ("Jalen Hurts / Jayden Daniels (QB)", "Rushing floors that outscore QBs taken 3 rounds earlier."),
+    ("Matthew Stafford / Dak Prescott (QB)", "46 and 30 pass TDs in 2025 = +92 and +60 pts from the 6-pt rule, going 50+ picks after Allen."),
     ("Marvin Harrison Jr. (WR, ARI)", "Year-3 bounce-back at a discount."),
 ])
 
@@ -663,7 +685,40 @@ for i, r in enumerate(rows):
 assert rows[B0-2][0] == "Rank", "board header misplaced: %r" % (rows[B0-2][:3],)
 assert rows[B0-1][2] == board[0][0], "board start wrong: %r" % (rows[B0-1][:3],)
 assert rows[B1-1][2] == board[-1][0], "board end wrong: %r" % (rows[B1-1][:3],)
+assert B1 - B0 + 1 == len(board), "board row span %d != %d players" % (B1-B0+1, len(board))
 assert not any(r and r[0] == TRACKER_MARK for r in rows), "unreplaced tracker row"
+
+# The offsets above being right is not the same as the FORMULAS being right.
+# Parse every generated formula back out and prove each range and each criteria
+# cell lands on the row we intended. This is the assertion that was missing when
+# a previous version silently pointed every formula at the wrong cells.
+import re as _re
+_HDRCOLS = ["Rank","Tier","Player","Pos","Team","Bye","ADP","Notes","Drafted?","MINE?"]
+assert rows[B0-2] == _HDRCOLS, "board columns moved: %r" % (rows[B0-2],)
+_checked = 0
+for _r in rows:
+    for _c in _r:
+        if not (isinstance(_c, str) and _c.startswith("=COUNTIFS")):
+            continue
+        for _col, _a, _b in _re.findall(r"\$([A-J])\$(\d+):\$[A-J]\$(\d+)", _c):
+            assert (int(_a), int(_b)) == (B0, B1), \
+                "formula range $%s$%s:$%s$%s != board rows %d-%d in %r" % (
+                    _col, _a, _col, _b, B0, B1, _c)
+            _checked += 1
+        # criteria cells are the bare (unanchored-column) refs like B$8 / B$13
+        for _cell, _row in _re.findall(r"(?<![$:\w])([A-J])\$(\d+)", _c):
+            assert int(_row) in (HDR_POS_ROW, BYE_ROW), \
+                "criteria cell %s$%s points at row %s, expected header %d or %d in %r" % (
+                    _cell, _row, _row, HDR_POS_ROW, BYE_ROW, _c)
+            _checked += 1
+assert _checked >= 30, "only %d formula refs verified — assertions not running" % _checked
+assert rows[HDR_POS_ROW-1][1:5] == ["QB","RB","WR","TE"], \
+    "position header row %d moved: %r" % (HDR_POS_ROW, rows[HDR_POS_ROW-1][:5])
+assert len([c for c in rows[BYE_ROW-1][1:] if c != ""]) == 9, \
+    "bye header row %d should hold 9 weeks: %r" % (BYE_ROW, rows[BYE_ROW-1])
+assert len([c for c in rows[BYE_ROW][1:] if str(c).startswith("=")]) == 9, \
+    "bye count row should hold 9 formulas: %r" % (rows[BYE_ROW],)
+print("verified %d formula cell references against computed offsets" % _checked)
 print("CSV: board rows %d-%d | tracker rows %d-%d | bands %s" % (B0, B1, ROW_COUNT, BYE_ROW+1,
       {p: bands[p][0] for p in bands}))
 

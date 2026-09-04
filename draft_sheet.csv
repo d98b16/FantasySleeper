@@ -1,0 +1,178 @@
+2026 DRAFT BOARD — GovSmart Gridiron — Pick #3 (LIVE TRACKER)
+VERIFIED from Sleeper: 12-team snake | 0.5 PPR | 6-pt passing TDs | $100 FAAB | slot #3 | draft Fri Sep 4 5:30 PM ET | 90s pick timer
+ROSTER: QB/RB/RB/WR/WR/TE/FLEX/DEF + 4 bench. 12 rounds. NO KICKER. A DEFENSE is a required starter. 2 IR slots.
+6-pt pass TDs lift EVERY QB — take a top-6 QB by rounds 5-8.
+"Your 12 picks (snake, slot 3): 3, 22, 27, 46, 51, 70, 75, 94, 99, 118, 123, 142"
+
+LIVE TRACKER — mark x in Drafted? (col I) for EVERY pick; ALSO x in MINE? (col J) for yours. Counters update live.
+,QB,RB,WR,TE
+My roster count,"=COUNTIFS($D$41:$D$169,B$8,$J$41:$J$169,""x"")","=COUNTIFS($D$41:$D$169,C$8,$J$41:$J$169,""x"")","=COUNTIFS($D$41:$D$169,D$8,$J$41:$J$169,""x"")","=COUNTIFS($D$41:$D$169,E$8,$J$41:$J$169,""x"")"
+Starters still needed,"=MAX(0,1-B9)","=MAX(0,2-C9)","=MAX(0,2-D9)","=MAX(0,1-E9)","(+1 FLEX, +1 DEF in R12)"
+Top-tier left (undrafted),"=COUNTIFS($D$41:$D$169,B$8,$B$41:$B$169,""T5"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,B$8,$B$41:$B$169,""T6"",$I$41:$I$169,""<>x"")","=COUNTIFS($D$41:$D$169,C$8,$B$41:$B$169,""T1"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,C$8,$B$41:$B$169,""T2"",$I$41:$I$169,""<>x"")","=COUNTIFS($D$41:$D$169,D$8,$B$41:$B$169,""T1"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,D$8,$B$41:$B$169,""T2"",$I$41:$I$169,""<>x"")","=COUNTIFS($D$41:$D$169,E$8,$B$41:$B$169,""T5"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,E$8,$B$41:$B$169,""T6"",$I$41:$I$169,""<>x"")"
+Next tier left,"=COUNTIFS($D$41:$D$169,B$8,$B$41:$B$169,""T7"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,B$8,$B$41:$B$169,""T8"",$I$41:$I$169,""<>x"")","=COUNTIFS($D$41:$D$169,C$8,$B$41:$B$169,""T3"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,C$8,$B$41:$B$169,""T4"",$I$41:$I$169,""<>x"")","=COUNTIFS($D$41:$D$169,D$8,$B$41:$B$169,""T3"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,D$8,$B$41:$B$169,""T4"",$I$41:$I$169,""<>x"")","=COUNTIFS($D$41:$D$169,E$8,$B$41:$B$169,""T8"",$I$41:$I$169,""<>x"")+COUNTIFS($D$41:$D$169,E$8,$B$41:$B$169,""T9"",$I$41:$I$169,""<>x"")"
+My bye weeks:,5,6,7,8,9,10,11,13,14
+Count (3+ same bye = fix it),"=COUNTIFS($F$41:$F$169,B$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,C$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,D$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,E$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,F$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,G$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,H$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,I$13,$J$41:$J$169,""x"")","=COUNTIFS($F$41:$F$169,J$13,$J$41:$J$169,""x"")"
+
+ROUND-BY-ROUND — BEST PLAYER TO TARGET AT EACH PICK
+Rd,Your Pick,On Board (ADP),BEST TARGET (take one),Fallbacks / Best Available,Plan
+1,3,1-6,Ja'Marr Chase or Puka Nacua (elite WR1),Jaxon Smith-Njigba; Bijan Robinson if he slips,Gibbs & Bijan usually gone 1-2. Lock an elite WR. Don't overthink it.
+2,22,18-25,Kenneth Walker III or Omarion Hampton (anchor an RB),Ashton Jeanty if he slides (ankle discount); Nico Collins / A.J. Brown (WR),RB dries up fast. Grab your RB1 at the turn.
+3,27,24-31,Malik Nabers or Zay Flowers (WR); Kyren Williams (RB),Chris Olave; Jeremiyah Love; DeVonta Smith,You pick 22 & 27 back-to-back. Take whichever position you skipped at 22.
+4,46,43-52,Brock Bowers (elite-TE edge) OR Terry McLaurin / DJ Moore (WR),Bucky Irving; Quinshon Judkins (RB),Only 12 rounds — Bowers here locks TE and frees every later pick.
+5,51,48-58,RB Quinshon Judkins or WR Mike Evans — keep stacking starters,Bucky Irving; Rome Odunze; Jaylen Waddle,Do NOT take a QB here. Top QB is worth ~60 pts over replacement; a top RB is worth ~227.
+6,70,60-72,DK Metcalf / Marvin Harrison Jr. (WR upside),TreVeyon Henderson (RB); Christian Watson,Fill your last open starting WR or RB here. Still not QB.
+7,75,72-80,Jordan Addison / Jayden Reed (WR),Tony Pollard (RB); a starting TE if you still need one,Bench is only 4 deep — starters beat lottery tickets.
+8,94,87-99,Finish your 7 offensive starters — best WR/RB/TE left,Tyler Warren / Kyle Pitts (TE); Matthew Golden (WR),Every starter filled before you spend a pick on QB.
+9,99,94-104,QB NOW — Stafford / Prescott / Herbert / Lawrence / Mahomes,Best FLEX left if two QBs you like are still there,"The QB window. 2025: Stafford +92 pts from the 6-pt rule vs Allen +50, at 56 picks cheaper."
+10,118,110-123,"Handcuff your RB1/RB2 (RJ Harvey, Jonathon Brooks)",Kyle Pitts (TE2); Justin Herbert / Bo Nix (QB2),Only 4 bench spots — protect the studs you already paid for.
+11,123,Best avail.,Best upside swing left on the board,2nd TE or QB if you're thin there,Last real value pick. Ceiling over floor.
+12,142,Last pick,DEFENSE — Seattle / Denver / Houston (best Week-1 matchup),—,NO KICKER in this league. DEF is a required starter — this is the pick for it.
+
+TURN SCENARIOS — PICKS 22 & 27 (you pick back-to-back)
+DEFAULT (you took a WR at 3): leave the 22/27 turn with an RB anchor + one more stud.  Ideal pairs: Walker + Nabers  ·  Hampton + Kyren  ·  Jacobs + Olave.
+CHASE AND NACUA BOTH GONE AT 3: take Jaxon Smith-Njigba. Do NOT reach for an RB at 3 — the Tier-1 WR still wins the pick.
+GIBBS OR BIJAN SLIDES TO 3: take him. Then go WR + WR at 22/27 (A.J. Brown / Nico + Nabers / Flowers) — your RB1 is already banked.
+"JEANTY FALLS TO 22: ankle discount, not a red flag — and you have 2 IR slots, so a slow start is survivable. Otherwise Walker is the safe anchor."
+"ROSTER SHAPE: 12 rounds, 8 starters (QB/RB/RB/WR/WR/TE/FLEX/DEF), 4 bench, NO KICKER. Every pick is a roster spot — there is no room for dead weight."
+"QB, MEASURED (2025 nflverse, re-scored to 6-pt): the rule lifts the STREAMER from 17.4 to 20.9 pts/g and the top-6 from 20.7 to 24.5 — the elite QB's ADVANTAGE grows just 0.4 pts/g (~7 pts a season). Rushing TDs are already 6 pts in every format, so pocket passers gain most: Stafford +92, Goff +68, Maye +62 vs Allen +50, Lamar +42. Wait until round 9."
+
+BIG BOARD — Top 120 (half-PPR). ADP thru ~#60 = live market (Aug 27); 61+ = expert consensus.
+Rank,Tier,Player,Pos,Team,Bye,ADP,Notes,Drafted?,MINE?
+1,T1,Jahmyr Gibbs,RB,DET,6,1.5,,,
+2,T1,Bijan Robinson,RB,ATL,11,2.2,,,
+3,T1,Puka Nacua,WR,LAR,11,3.0,"Groin — minor, expected Wk1",,
+4,T1,Ja'Marr Chase,WR,CIN,6,3.9,Safest WR1,,
+5,T1,Jaxon Smith-Njigba,WR,SEA,11,5.2,,,
+6,T2,Jonathan Taylor,RB,IND,13,5.9,,,
+7,T2,Christian McCaffrey,RB,SF,8,6.6,Elite when healthy,,
+8,T2,Amon-Ra St. Brown,WR,DET,6,8.0,,,
+9,T2,James Cook III,RB,BUF,7,9.3,,,
+10,T2,Derrick Henry,RB,BAL,13,9.7,"Age, still elite",,
+11,T2,De'Von Achane,RB,MIA,6,11.7,,,
+12,T2,Drake London,WR,ATL,11,12.0,,,
+13,T2,CeeDee Lamb,WR,DAL,14,12.5,,,
+14,T3,Justin Jefferson,WR,MIN,6,14.4,,,
+15,T3,Chase Brown,RB,CIN,6,15.1,,,
+16,T3,Rashee Rice,WR,KC,5,15.2,,,
+17,T3,Saquon Barkley,RB,PHI,10,17.6,,,
+18,T3,Nico Collins,WR,HOU,8,18.4,,,
+19,T3,Ashton Jeanty,RB,LV,13,18.9,Ankle — Wk1 uncertain; ADP sliding (~15 to 19),,
+20,T3,George Pickens,WR,DAL,14,19.9,,,
+21,T3,A.J. Brown,WR,NE,11,20.0,New team (NE),,
+22,T3,Kenneth Walker III,RB,KC,5,20.5,Now in KC,,
+23,T4,Chris Olave,WR,NO,8,23.2,,,
+24,T4,Omarion Hampton,RB,LAC,7,24.0,,,
+25,T4,Zay Flowers,WR,BAL,13,25.2,,,
+26,T4,Josh Jacobs,RB,GB,11,25.4,,,
+27,T4,Malik Nabers,WR,NYG,8,26.2,Knee — expected Wk1,,
+28,T4,Kyren Williams,RB,LAR,11,27.4,,,
+29,T4,Jeremiyah Love,RB,ARI,14,29.0,Rookie; high-ankle — expected Wk1,,
+30,T4,Tetairoa McMillan,WR,CAR,5,30.7,,,
+31,T4,Garrett Wilson,WR,NYJ,13,31.1,,,
+32,T4,DeVonta Smith,WR,PHI,10,31.6,Value,,
+33,T5,Josh Allen,QB,BUF,7,33.0,QB1 overall — 6-pt pass-TD riser,,
+34,T5,Javonte Williams,RB,DAL,14,33.2,Now in DAL,,
+35,T5,Breece Hall,RB,NYJ,13,33.5,Groin — expected Wk1; market rising,,
+36,T5,Emeka Egbuka,WR,TB,10,33.7,Toe — monitor (Q),,
+37,T5,Tee Higgins,WR,CIN,6,35.9,,,
+38,T5,Travis Etienne Jr.,RB,NO,8,37.3,Now in NO,,
+39,T5,Trey McBride,TE,ARI,14,37.8,TE1 — elite,,
+40,T5,Davante Adams,WR,LAR,11,37.9,Now in LAR,,
+41,T5,Cam Skattebo,RB,NYG,8,38.4,Risky at cost,,
+42,T5,Jameson Williams,WR,DET,6,38.7,Upside,,
+43,T5,Ladd McConkey,WR,LAC,7,41.0,,,
+44,T6,D'Andre Swift,RB,CHI,10,43.2,,,
+45,T6,Brock Bowers,TE,LV,13,44.0,Elite TE — positional edge,,
+46,T6,DJ Moore,WR,BUF,7,44.9,Now in BUF,,
+47,T6,Terry McLaurin,WR,WAS,7,45.1,,,
+48,T6,Bucky Irving,RB,TB,10,47.0,,,
+49,T6,Jaylen Waddle,WR,DEN,10,47.3,Now in DEN,,
+50,T6,Rome Odunze,WR,CHI,10,48.9,,,
+51,T6,Drake Maye,QB,NE,11,51.3,6-pt pass-TD riser,,
+52,T6,Quinshon Judkins,RB,CLE,11,51.5,,,
+53,T6,Bhayshul Tuten,RB,JAX,7,52.5,Upside,,
+54,T6,Mike Evans,WR,SF,8,54.2,Now in SF,,
+55,T6,Lamar Jackson,QB,BAL,13,55.5,6-pt pass-TD riser (rush+pass),,
+56,T6,David Montgomery,RB,HOU,8,55.5,Now in HOU,,
+57,T7,Christian Watson,WR,GB,11,56.0,,,
+58,T7,Joe Burrow,QB,CIN,6,57.5,6-pt pass-TD riser,,
+59,T7,Luther Burden III,WR,CHI,10,57.6,Groin — expected Wk1; ADP rising,,
+60,T7,Courtland Sutton,WR,DEN,10,59.1,,,
+61,T7,Ollie Gordon II,RB,MIA,6,,Fell out of top-60 ADP — monitor role,,
+62,T7,Alec Pierce,WR,IND,13,,Ankle/PUP — expected Wk1,,
+63,T7,DK Metcalf,WR,PIT,9,,,,
+64,T7,Marvin Harrison Jr.,WR,ARI,14,,Bounce-back upside,,
+65,T7,Parker Washington,WR,JAX,7,,,,
+66,T7,Brian Thomas Jr.,WR,JAX,7,,Upside,,
+67,T7,Jaylen Warren,RB,PIT,9,,,,
+68,T7,Carnell Tate,WR,TEN,9,,Rookie,,
+69,T7,Rhamondre Stevenson,RB,NE,11,,,,
+70,T7,Chris Godwin Jr.,WR,TB,10,,,,
+71,T7,TreVeyon Henderson,RB,NE,11,,Upside,,
+72,T8,Michael Pittman Jr.,WR,PIT,9,,Now in PIT,,
+73,T8,Tony Pollard,RB,TEN,9,,,,
+74,T8,Jakobi Meyers,WR,JAX,7,,Now in JAX,,
+75,T8,Jordan Addison,WR,MIN,6,,,,
+76,T8,Quentin Johnston,WR,LAC,7,,,,
+77,T8,Jayden Reed,WR,GB,11,,,,
+78,T8,George Kittle,TE,SF,8,,Achilles — expected Wk1,,
+79,T8,Wan'Dale Robinson,WR,TEN,9,,Now in TEN,,
+80,T8,Josh Downs,WR,IND,13,,,,
+81,T8,Rico Dowdle,RB,PIT,9,,,,
+82,T8,Dak Prescott,QB,DAL,14,,,,
+83,T8,Stefon Diggs,WR,WAS,7,,Now in WAS,,
+84,T8,Xavier Worthy,WR,KC,5,,,,
+85,T8,Deebo Samuel Sr.,WR,SF,8,,,,
+86,T8,J.K. Dobbins,RB,DEN,10,,,,
+87,T8,Jayden Daniels,QB,WAS,7,,6-pt pass-TD riser (rush+pass),,
+88,T8,Jadarian Price,RB,SEA,11,,Rookie,,
+89,T8,Matthew Stafford,QB,LAR,11,,,,
+90,T9,Matthew Golden,WR,GB,11,,Upside,,
+91,T9,Colston Loveland,TE,CHI,10,,,,
+92,T9,Jalen Hurts,QB,PHI,10,,Rushing QB — 6-pt pass-TD riser,,
+93,T9,Brock Purdy,QB,SF,8,,,,
+94,T9,Chuba Hubbard,RB,CAR,5,,Hamstring; committee w/ Brooks,,
+95,T9,Khalil Shakir,WR,BUF,7,,,,
+96,T9,Romeo Doubs,WR,NE,11,,,,
+97,T9,Makai Lemon,WR,PHI,10,,Rookie — upside,,
+98,T9,Trevor Lawrence,QB,JAX,7,,,,
+99,T9,Caleb Williams,QB,CHI,10,,Upside,,
+100,T9,Jared Goff,QB,DET,6,,,,
+101,T9,Tyler Warren,TE,IND,13,,Groin — expected Wk1,,
+102,T9,Patrick Mahomes,QB,KC,5,,Knee — reduced rush upside,,
+103,T9,Jalen Coker,WR,CAR,5,,,,
+104,T9,Rashid Shaheed,WR,SEA,11,,Now in SEA,,
+105,T9,Jerry Jeudy,WR,CLE,11,,,,
+106,T9,KC Concepcion,WR,CLE,11,,Rookie,,
+107,T9,Harold Fannin Jr.,TE,CLE,11,,,,
+108,T9,Jonathon Brooks,RB,CAR,5,,Committee w/ Hubbard,,
+109,T10,Justin Herbert,QB,LAC,7,,,,
+110,T10,Kyle Pitts Sr.,TE,ATL,11,,,,
+111,T10,Bo Nix,QB,DEN,10,,,,
+112,T10,Jaxson Dart,QB,NYG,8,,Upside,,
+113,T10,Kyle Monangai,RB,CHI,10,,Knee — multi-week (Q),,
+114,T10,Dallas Goedert,TE,PHI,10,,,,
+115,T10,Kenny Gainwell,RB,TB,10,,,,
+116,T10,Tre Tucker,WR,LV,13,,,,
+117,T10,RJ Harvey,RB,DEN,10,,Handcuff (Dobbins),,
+118,T10,HOU D/ST,DST,HOU,8,,"DEF #1 in 2025 (146 pts, 8.6/g) — REQUIRED starter, take one by R11",,
+119,T10,SEA D/ST,DST,SEA,11,,"DEF #2 in 2025 (140 pts, 8.2/g) — REQUIRED starter, take one by R11",,
+120,T10,DEN D/ST,DST,DEN,10,,"DEF #3 in 2025 (137 pts, 8.1/g) — REQUIRED starter, take one by R11",,
+121,T10,MIN D/ST,DST,MIN,6,,"DEF #4 in 2025 (129 pts, 7.6/g) — REQUIRED starter, take one by R11",,
+122,T10,LAR D/ST,DST,LAR,11,,"DEF #5 in 2025 (128 pts, 7.5/g) — REQUIRED starter, take one by R11",,
+123,T10,JAX D/ST,DST,JAX,7,,"DEF #6 in 2025 (128 pts, 7.5/g) — REQUIRED starter, take one by R11",,
+124,T10,CLE D/ST,DST,CLE,11,,"DEF #7 in 2025 (127 pts, 7.5/g) — REQUIRED starter, take one by R11",,
+125,T10,PHI D/ST,DST,PHI,10,,"DEF #8 in 2025 (125 pts, 7.3/g) — REQUIRED starter, take one by R11",,
+126,T10,ATL D/ST,DST,ATL,11,,"DEF #9 in 2025 (117 pts, 6.9/g) — REQUIRED starter, take one by R11",,
+127,T10,PIT D/ST,DST,PIT,9,,"DEF #10 in 2025 (117 pts, 6.9/g) — REQUIRED starter, take one by R11",,
+128,T10,CHI D/ST,DST,CHI,10,,"DEF #11 in 2025 (114 pts, 6.7/g) — REQUIRED starter, take one by R11",,
+129,T10,LAC D/ST,DST,LAC,7,,"DEF #12 in 2025 (108 pts, 6.3/g) — REQUIRED starter, take one by R11",,
+
+FAAB — $100 SEASON FREE-AGENT BUDGET (in-season waiver bidding; separate from the draft)
+Save it for RBs,"Most FAAB league-winners are backup RBs who fall into a starting job (injury or benching). Spend your biggest bids there, not on WRs."
+Be aggressive early (Wks 1-4),This is when breakout RB/WRs first surface and roles shift. Pounce on real opportunity — but don't empty the tank.
+Cap any single bid,Rarely go over ~$30-40 on one player unless it's a clear league-winner (a true every-down bell-cow RB).
+Keep dry powder,Hold ~$25-30 into the fantasy playoff push (Wks 12-14) for an injury replacement or a great matchup streamer.
+Win ties with odd bids,"Bid $17 or $23, never round numbers — you edge out everyone parked on $15 / $20."
+Stream defenses cheap,"No kicker in this league. Defenses and one-week fill-ins are $0-2 bids — stream the matchup, never pay up."
+Don't panic Week 1,Let roles settle a week or two before spending on preseason hype or one big game.

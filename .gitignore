@@ -1,0 +1,5 @@
+# cached nflverse pulls — large, re-downloadable, never edited by hand
+data/raw/
+node_modules/
+package-lock.json
+package.json

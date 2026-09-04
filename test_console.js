@@ -9,19 +9,19 @@ const path = require('path');
   page.on('pageerror', e => errors.push('PAGEERROR: ' + e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push('CONSOLE: ' + m.text()); });
 
-  await page.goto('file://' + path.resolve('draft_console.html'));
+  await page.goto('file://' + path.resolve('index.html'));
   await page.waitForTimeout(400);
 
   // --- unit-check the snake math against the known truth from the spreadsheet
   const snake = await page.evaluate(() => {
     const { CONFIG } = window.DRAFT;
-    CONFIG.teams = 12; CONFIG.mySlot = 3; CONFIG.rounds = 15;
+    CONFIG.teams = 12; CONFIG.mySlot = 3; CONFIG.rounds = 12;
     const out = [];
-    for (let rd = 1; rd <= 15; rd++)
+    for (let rd = 1; rd <= CONFIG.rounds; rd++)
       out.push((rd % 2) ? 12*(rd-1)+3 : 12*rd-3+1);
     return out;
   });
-  const expected = [3,22,27,46,51,70,75,94,99,118,123,142,147,166,171];
+  const expected = [3,22,27,46,51,70,75,94,99,118,123,142];  // CONTEXT.md, 12 rounds
   const snakeOK = JSON.stringify(snake) === JSON.stringify(expected);
   console.log('snake picks:', snake.join(','));
   console.log('snake math matches spreadsheet:', snakeOK);
@@ -62,6 +62,7 @@ const path = require('path');
       mine: v.mine.map(p => `R${p.round} ${p.pos} ${p.name}`),
       have: v.have, need: v.need,
       avail: v.avail.length,
+      boardSize: JSON.parse(document.getElementById('ranksData').textContent).ranks.length,
       top3: v.scored.slice(0,3).map(p => `${p.name} (${p.pos}, score ${Math.round(p.score)})`),
       supplyRB: v.supply.RB, supplyWR: v.supply.WR,
       feedCount: document.querySelectorAll('.fitem').length,
@@ -87,7 +88,7 @@ const path = require('path');
     'snake math correct': snakeOK,
     'all name variants match': allMatch,
     'picks were made': state.picks >= 30,
-    'board shrank by picks made': state.avail === 120 - state.picks,
+    'board shrank by picks made': state.avail === state.boardSize - state.picks,
     'my roster populated': state.mine.length >= 2,
     'recommendations present': state.top3.length === 3,
     'feed rendered': state.feedCount > 0,
