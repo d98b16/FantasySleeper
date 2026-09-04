@@ -1,0 +1,328 @@
+{
+  "span": [
+    2012,
+    2025
+  ],
+  "sources": {
+    "stats_player": {
+      "release": "stats_player",
+      "pattern": "stats_player_week_{y}.parquet",
+      "first_available": 1999,
+      "years": [
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 11.5
+    },
+    "stats_team": {
+      "release": "stats_team",
+      "pattern": "stats_team_week_{y}.parquet",
+      "first_available": 1999,
+      "years": [
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 1.8
+    },
+    "pbp": {
+      "release": "pbp",
+      "pattern": "play_by_play_{y}.parquet",
+      "first_available": 1999,
+      "years": [
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 275.8
+    },
+    "snap_counts": {
+      "release": "snap_counts",
+      "pattern": "snap_counts_{y}.parquet",
+      "first_available": 2012,
+      "years": [
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 2.9
+    },
+    "weekly_rosters": {
+      "release": "weekly_rosters",
+      "pattern": "roster_weekly_{y}.parquet",
+      "first_available": 2002,
+      "years": [
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 9.9
+    },
+    "depth_charts": {
+      "release": "depth_charts",
+      "pattern": "depth_charts_{y}.parquet",
+      "first_available": 2001,
+      "years": [
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 8.8
+    },
+    "injuries": {
+      "release": "injuries",
+      "pattern": "injuries_{y}.parquet",
+      "first_available": 2009,
+      "years": [
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 1.7
+    },
+    "participation": {
+      "release": "pbp_participation",
+      "pattern": "pbp_participation_{y}.parquet",
+      "first_available": 2016,
+      "years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 34.8
+    },
+    "advstats_rec": {
+      "release": "pfr_advstats",
+      "pattern": "advstats_week_rec_{y}.parquet",
+      "first_available": 2018,
+      "years": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 0.4
+    },
+    "advstats_rush": {
+      "release": "pfr_advstats",
+      "pattern": "advstats_week_rush_{y}.parquet",
+      "first_available": 2018,
+      "years": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 0.4
+    },
+    "advstats_pass": {
+      "release": "pfr_advstats",
+      "pattern": "advstats_week_pass_{y}.parquet",
+      "first_available": 2018,
+      "years": [
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "mb": 0.2
+    },
+    "players": {
+      "release": "players_components",
+      "file": "players.parquet",
+      "static": true,
+      "mb": 3.22
+    },
+    "draft_picks": {
+      "release": "draft_picks",
+      "file": "draft_picks.parquet",
+      "static": true,
+      "mb": 0.7
+    },
+    "schedules": {
+      "release": "schedules",
+      "file": "games.parquet",
+      "static": true,
+      "mb": 0.52
+    },
+    "combine": {
+      "release": "combine",
+      "file": "combine.parquet",
+      "static": true,
+      "mb": 0.37
+    },
+    "ngs_passing": {
+      "release": "nextgen_stats",
+      "file": "ngs_passing.parquet",
+      "static": true,
+      "mb": 0.72
+    },
+    "ngs_rushing": {
+      "release": "nextgen_stats",
+      "file": "ngs_rushing.parquet",
+      "static": true,
+      "mb": 0.38
+    },
+    "ngs_receiving": {
+      "release": "nextgen_stats",
+      "file": "ngs_receiving.parquet",
+      "static": true,
+      "mb": 1.12
+    },
+    "teams": {
+      "release": "teams",
+      "file": "teams_colors_logos.parquet",
+      "static": true,
+      "mb": 0.01
+    }
+  },
+  "adp": {
+    "half-ppr": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "ppr": [
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "standard": [
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "missing": [],
+  "fetched": 175,
+  "from_cache": 5,
+  "total_mb": 356.6
+}
