@@ -117,6 +117,10 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
 @media(max-width:430px){
   th,td{padding-left:6px;padding-right:6px}
   th{font-size:9px}
+  /* The 9-column board is ~30px wider than a phone. Bye is the one column that
+     is genuinely redundant here — it also appears on every filled roster slot
+     card and drives its own stacking alert — so it is the one that goes. */
+  #baBody td.byecol, th.byecol{display:none}
 }
 /* ---------- edge ---------- */
 #thesis{padding:9px 12px;font-size:11px;line-height:1.5;color:var(--dim);border-bottom:1px solid var(--line);background:rgba(227,179,65,.06)}
@@ -240,7 +244,7 @@ footer{margin-top:10px;font-size:10.5px;color:var(--faint);text-align:center;lin
       <h2>Best available <span class="sub" id="baSub">by our board + your needs</span></h2>
       <div id="runbar"></div>
       <table>
-        <thead><tr><th style="width:34px">#</th><th>Player</th><th style="width:44px">Pos</th><th style="width:38px">Bye</th><th style="width:46px" class="num">ADP</th><th style="width:74px" class="num">Range</th><th style="width:44px" class="num">Bust</th><th style="width:56px" class="num" id="lastsTh">Lasts</th><th style="width:40px">Tier</th></tr></thead>
+        <thead><tr><th style="width:34px">#</th><th>Player</th><th style="width:44px">Pos</th><th style="width:38px" class="byecol">Bye</th><th style="width:46px" class="num">ADP</th><th style="width:74px" class="num">Range</th><th style="width:44px" class="num">Bust</th><th style="width:56px" class="num" id="lastsTh">Lasts</th><th style="width:40px">Tier</th></tr></thead>
         <tbody id="baBody"></tbody>
       </table>
     </div>
@@ -888,7 +892,7 @@ function render(animate){
           ${p.why.length?`<div class="why">${i===0?'<b>TAKE HIM</b> · ':''}${esc(p.why.slice(0,3).join(' · '))}</div>`:''}
           ${p.notes?`<div class="why" style="color:var(--faint)">${esc(p.notes)}</div>`:''}</td>
       <td><span class="pos ${p.pos}">${p.pos}</span></td>
-      <td class="mono meta">${p.bye||'—'}</td>
+      <td class="mono meta byecol">${p.bye||'—'}</td>
       <td class="mono num meta">${p.adp ?? '—'}</td>
       <td class="mono num">${p.edge && p.edge.conf !== 'none'
         ? `<span class="rng" title="${esc(p.edge.why)}">${p.edge.floor.toFixed(0)}<span

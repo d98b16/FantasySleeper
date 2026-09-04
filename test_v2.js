@@ -270,9 +270,18 @@ const T = (name, val) => { checks[name] = val; };
         ? p.ranked.team.toUpperCase() : norm(p.ranked.name)));
       render(false);
     });
-    const fits = await page.evaluate(() =>
-      document.documentElement.scrollWidth <= window.innerWidth);
-    T(`no horizontal page scroll at ${w}px`, fits);
+    const m = await page.evaluate(() => {
+      const t = document.querySelector('.card > table');
+      return { fits: document.documentElement.scrollWidth <= window.innerWidth,
+               tableFits: t.scrollWidth <= t.clientWidth + 1,
+               cols: [...document.querySelectorAll('#baBody tr:first-child td')]
+                       .filter(td => td.offsetParent !== null).length };
+    });
+    T(`no horizontal page scroll at ${w}px`, m.fits);
+    // the 9-column board is a few px wider than a phone, so Bye (redundant with
+    // the roster cards and its own alert) is hidden under 430px
+    if (w >= 390) T(`board table fits without scrolling at ${w}px`, m.tableFits);
+    T(`bye column dropped on a phone at ${w}px`, m.cols === 8);
   }
   await page.evaluate(() => { window.DRAFT.S.picks = []; window.DRAFT.S.taken = new Set(); });
   await page.setViewportSize({ width: 1440, height: 1200 });
