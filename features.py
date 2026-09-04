@@ -69,7 +69,10 @@ def expected_tds(panel):
     return p
 
 
-def build():
+def build(keep_untargeted=False):
+    """keep_untargeted=True also returns the most recent season's rows, which
+    have no target yet. Those are what a live projection is built from: the
+    2025 row IS the feature vector for the 2026 season."""
     panel = pd.read_parquet(os.path.join(OUT, "player_seasons.parquet"))
     panel = expected_tds(panel)
     panel["routes_pg"] = panel.routes / panel.games.replace(0, np.nan)
@@ -107,8 +110,12 @@ def build():
         frames.append(g)
     f = pd.concat(frames, ignore_index=True)
 
-    # a row is usable if the next season exists and is consecutive
-    f = f[f.y_season == f.season + 1].copy()
+    # a row is usable for TRAINING if the next season exists and is consecutive;
+    # the final season's rows have no target and are kept only for projection
+    if keep_untargeted:
+        f = f[(f.y_season == f.season + 1) | (f.season == f.season.max())].copy()
+    else:
+        f = f[f.y_season == f.season + 1].copy()
     f["x_age"] = f.age
     f["x_age_sq"] = f.age ** 2
     f["x_exp"] = f.exp
@@ -119,7 +126,9 @@ def build():
     f["x_inj_out"] = f.inj_out.fillna(0)
     f["x_teams_played"] = f.teams_played.fillna(1)
     f["x_changed_team_next"] = (f.y_team != f.team).astype(float)   # known at draft time
-    f["y_avail"] = f.y_games / f.sched_games.shift(0)
+    f["is_projection_row"] = f.y_season.isna()
+    # availability as a RATE so 16- and 17-game eras are comparable
+    f["y_avail"] = f.y_games / f.sched_games.where(f.sched_games > 0)
     return f
 
 
