@@ -266,7 +266,7 @@ board = [
     ("LAC D/ST","DST","LAC",7,"",10,"DEF #12 in 2025 (108 pts, 6.3/g) — REQUIRED starter, take one by R11"),
 ]
 
-wb2["A1"] = "BIG BOARD — 2026 Half-PPR (Top 120)"
+wb2["A1"] = "BIG BOARD — 2026 Half-PPR (Top %d)" % len(board)
 wb2["A1"].font = F(16, bold=True, color=NAVY)
 wb2.merge_cells("A1:I1")
 wb2["A2"] = ("Drafted? (col I): x for EVERY pick by anyone — greys the row out.  MINE? (col J): x for YOUR picks — turns green and feeds the Live Tracker tab.  "
@@ -607,7 +607,7 @@ print("sheets:", wb.sheetnames)
 print("big board players:", len(board))
 
 # ---- also emit a CSV for the native Google Sheet (with live tracker formulas) ----
-import csv
+import csv, re
 
 rows = []
 TRACKER_MARK = "__TRACKER__"
@@ -615,7 +615,9 @@ TRACKER_MARK = "__TRACKER__"
 rows.append(["2026 DRAFT BOARD — GovSmart Gridiron — Pick #3 (LIVE TRACKER)"])
 rows.append(["VERIFIED from Sleeper: 12-team snake | 0.5 PPR | 6-pt passing TDs | $100 FAAB | slot #3 | draft Fri Sep 4 5:30 PM ET | 90s pick timer"])
 rows.append(["ROSTER: QB/RB/RB/WR/WR/TE/FLEX/DEF + 4 bench. 12 rounds. NO KICKER. A DEFENSE is a required starter. 2 IR slots."])
-rows.append(["6-pt pass TDs lift EVERY QB — take a top-6 QB by rounds 5-8."])
+rows.append(["6-pt pass TDs lift EVERY QB — including the streamer. Measured on 2024+2025, the elite QB's "
+              "edge grows only 7-19 pts across a WHOLE season, so WAIT ON QB until round 9, then take the "
+              "highest PASSING-TD volume left. See the QB note below."])
 rows.append(["Your 12 picks (snake, slot 3): 3, 22, 27, 46, 51, 70, 75, 94, 99, 118, 123, 142"])
 rows.append([])
 rows.append(["LIVE TRACKER — mark x in Drafted? (col I) for EVERY pick; ALSO x in MINE? (col J) for yours. Counters update live."])
@@ -642,7 +644,9 @@ rows.append(["TURN SCENARIOS — PICKS 22 & 27 (you pick back-to-back)"])
 for sc in scenarios:
     rows.append([sc])
 rows.append([])
-rows.append(["BIG BOARD — Top 120 (half-PPR). ADP thru ~#60 = live market (Aug 27); 61+ = expert consensus."])
+rows.append(["BIG BOARD — Top %d (half-PPR): %d skill players + %d defenses. ADP thru ~#60 = live market "
+              "(Aug 27); 61+ = expert consensus. Defenses are ranked by 2025 points under OUR DEF scoring."
+              % (len(board), sum(1 for b in board if b[1] != "DST"), sum(1 for b in board if b[1] == "DST"))])
 rows.append(["Rank","Tier","Player","Pos","Team","Bye","ADP","Notes","Drafted?","MINE?"])
 B0 = len(rows) + 1                                 # 1-indexed first board data row
 for i, (player, pos, team, bye, adp, tier, notes) in enumerate(board, 1):
@@ -723,6 +727,25 @@ assert len([c for c in rows[BYE_ROW][1:] if str(c).startswith("=")]) == 9, \
 print("verified %d formula cell references against computed offsets" % _checked)
 print("CSV: board rows %d-%d | tracker rows %d-%d | bands %s" % (B0, B1, ROW_COUNT, BYE_ROW+1,
       {p: bands[p][0] for p in bands}))
+
+# ---- content guards -------------------------------------------------------
+# Stale hardcoded copy is the recurring failure here: a "Top 120" heading that
+# outlived a 129-player board, and QB timing advice that contradicted the QB note
+# 33 rows below it. Both shipped to a spreadsheet a second person reads. Catch
+# the whole class rather than fixing them one at a time.
+_all_text = " ".join(str(c) for r in rows for c in r)
+_n = len(board)
+for _stale in re.findall(r"Top ~?(\d{2,4})", _all_text):
+    assert int(_stale) == _n, (
+        "stale board count 'Top %s' in output but board has %d players" % (_stale, _n))
+assert "rounds 5-8" not in _all_text, (
+    "QB timing advice 'rounds 5-8' contradicts the measured QB note — see build_edge.py")
+# a kicker must never be recommended; only warnings that there is no kicker slot
+for _m in re.finditer(r"[^.|]*[Kk]icker[^.|]*", _all_text):
+    _s = _m.group(0)
+    assert re.search(r"no[ -]kicker", _s, re.I), (
+        "text mentions a kicker without saying there is not one: %r" % _s[:120])
+print("content guards: board count, QB timing and no-kicker copy all consistent")
 
 with open("draft_sheet.csv", "w", newline="") as f:
     csv.writer(f).writerows(rows)
