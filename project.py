@@ -236,6 +236,7 @@ def main():
             np.array([np.interp(repl_pg, row, qs, left=0.0, right=1.0)
                       for row in shifted]), 0, 1)
         te.loc[hurt, "bust_prob"] = np.clip(te.loc[hurt, "bust_prob"] + 0.08, 0, 1)
+        te["bust_raw"] = te.bust_prob
 
         te["mean_season"] = te.mean_pg * te.games_proj
         te["floor_season"] = te.floor_pg * np.where(np.isfinite(te.games_floor),
@@ -246,12 +247,45 @@ def main():
         rows.append(te)
 
     P = pd.concat(rows, ignore_index=True)
+
+    # ---- CALIBRATE THE BUST LEVEL --------------------------------------
+    # A probability read off a five-point quantile fan gets the ORDERING right
+    # and the LEVEL wrong: uncalibrated it averaged 33.7% against a realised
+    # 24.9%. Rescale within each (position, ADP tier) cell so the mean matches
+    # the rate actually observed 2016-2025 (bust_base_rates.py), which preserves
+    # who is riskier while fixing how risky everyone is.
+    br_path = os.path.join(OUT, "bust_base_rates.csv")
+    if os.path.exists(br_path):
+        br = pd.read_csv(br_path)
+        tiers = [0, 6, 12, 24, 48, 999]
+        labels = ["1-6", "7-12", "13-24", "25-48", "49+"]
+        P["tier"] = pd.cut(P.x_adp_pos_rank, tiers, labels=labels)
+        tgt = br.set_index(["position", "tier"]).rate.to_dict()
+        before = P.bust_prob.mean()
+        for (pos, tier), g in P.groupby(["pos", "tier"], observed=True):
+            t = tgt.get((pos, str(tier)))
+            if t is None or g.bust_prob.mean() <= 1e-9:
+                continue
+            P.loc[g.index, "bust_prob"] = np.clip(
+                g.bust_prob * (t / g.bust_prob.mean()), 0, 0.95)
+        # The absolute probability is now correctly levelled, but ranking by it
+        # just lists late-round players -- true (cheap players do bust more) and
+        # useless, because you already knew that when you drafted them cheap.
+        # What is actionable is bust risk ABOVE what his price already implies.
+        P["tier_base"] = P.apply(
+            lambda r: tgt.get((r["pos"], str(r["tier"])), np.nan), axis=1)
+        P["bust_excess"] = P.bust_prob - P.tier_base
+        print(f"  bust calibrated to realised base rates: "
+              f"mean {before:.1%} -> {P.bust_prob.mean():.1%} "
+              f"(historical 24.9%); bust_excess = risk above his own price tier")
+
     P["confidence"] = np.where(P.x_games_1.isna(), "none",
                        np.where(P.x_games_1 >= 14, "high",
                         np.where(P.x_games_1 >= 9, "med", "low")))
     keep = ["name", "pos", "team", "bye", "rank", "adp", "tier", "mean_pg", "floor_pg",
             "ceil_pg", "model_pg", "repl_pg", "games_proj", "mean_season",
-            "floor_season", "ceil_season", "vor_season", "bust_prob", "sub_repl_prob",
+            "floor_season", "ceil_season", "vor_season", "bust_prob", "bust_raw",
+            "sub_repl_prob", "bust_excess", "tier_base",
             "injury_fade", "confidence", "x_games_1", "x_snap_pct_1",
             "x_target_share_1", "x_td_oe_pg_1", "x_pts_pg_1", "x_age", "x_exp",
             "x_adp_pos_rank"]

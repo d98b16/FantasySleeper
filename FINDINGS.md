@@ -188,6 +188,44 @@ season.
 5. **Young with a starter's snap share is a genuine buy**, worth about 13 season
    points on the same test.
 
+## Are the uncertainty bands honest?
+
+Testable, and worth testing, because a "floor" nobody checks is just a number.
+Running the same walk-forward protocol and measuring realised coverage on 1274
+held-out player-seasons (`calibration.py`):
+
+| construction | 80% interval actually contains | below floor | above ceiling |
+|---|---|---|---|
+| raw quantile model | 61.5% | 14.3% | 24.2% |
+| ADP centre, raw spread | 61.7% | 16.3% | 22.0% |
+| **conformalised (ships)** | **75.5%** | **11.5%** | **13.0%** |
+
+The raw intervals were badly overconfident — a nominal 80% band held 62% of
+outcomes. They are now conformalised: the widening factors are fit on held-out
+training seasons (floor ×1.24–1.31, ceiling ×1.21–1.45 by position) and the
+asymmetry is real, because outcomes overshoot more often than they undershoot.
+
+75.5% against a nominal 80% is still modestly narrow, and I am saying so rather
+than rounding it to "calibrated". Read the floor as roughly a 1-in-8 downside,
+not a 1-in-10.
+
+Bust probability was calibrated the same way. Read straight off the quantile fan
+it averaged 33.7% against a realised base rate of 24.9% (`bust_base_rates.py`,
+n=1556). It is now rescaled within each position × ADP-tier cell to match the
+rate actually observed, which fixes the level while preserving who is riskier:
+
+| ADP tier | shipped | historical |
+|---|---|---|
+| 1–6 | 19.2% | 19% |
+| 7–12 | 17.6% | 19% |
+| 13–24 | 21.9% | 22% |
+| 25–48 | 25.6% | 26% |
+| 49+ | 31.5% | 36% |
+
+The console ranks by bust risk **above his own price tier**, not absolute. Sorted
+absolutely the list is just late-round players, which is true and useless — cheap
+players bust more and you knew that when you drafted them cheap.
+
 ## What I would not bet on
 
 1. **Any claim that a model can out-rank ADP.** Mine cannot, and I gave it every
@@ -200,9 +238,26 @@ season.
    still fails, which is what a multiple-testing correction is for.
 4. **Any individual player projection.** The out-of-sample MAE is ~2.6 points per
    game, which over a season is ±45 points. The floor/ceiling range in the
-   console is the honest representation; the mean alone is not.
+   console is the honest representation; the mean alone is not — and even the
+   range is slightly too narrow at 75.5% coverage against a nominal 80%.
 5. **Anything about 2026 rookies.** Six board players have no NFL snaps. The model
    has literally nothing to say about them and does not pretend otherwise.
+
+## What the adversarial review found
+
+I ran a review whose job was to break these findings. It upheld one attack, and
+it was a real error of mine — the "1 of 7" verdict above was an artifact of a
+positional-rank hurdle that is scale-dependent and quietly biased against signals
+that fire on expensive players. Corrected to 2 of 7, measured in points.
+
+**The review did not complete.** Twenty-four of its twenty-eight agents died on a
+usage limit, so the attacks on the ADP baseline itself and on the projection
+intervals were never adjudicated. I tested the intervals myself instead (above,
+and it found a real problem), but the ADP-baseline attack — "is the comparison
+rigged in ADP's favour?" — remains unadjudicated by anyone but me. Given that
+the headline finding is *my model lost*, a rigged comparison would be flattering
+the market rather than the model, so the direction of any remaining bias works
+against my own conclusion. But it is not a substitute for the check.
 
 ## What I would change about how you draft
 

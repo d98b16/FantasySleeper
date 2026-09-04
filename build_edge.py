@@ -52,15 +52,22 @@ SIGNALS = {
 
 def human_why(r):
     """One line a person can evaluate at the table. Facts and measured effects
-    only -- no scores, and nothing that failed its own test."""
+    only -- no scores, and nothing that failed its own test.
+
+    Risk leads when the player carries above-tier bust risk, so a row appearing
+    in the bust list does not open with a reason to like him."""
     bits = []
+    risky = r.get("bust_excess", 0) >= 0.05
+    if risky and r.get("bust_excess", 0) >= 0.05:
+        bits.append(f"{r['bust_prob']*100:.0f}% bust risk, "
+                    f"{r['bust_excess']*100:+.0f} pts above his price tier")
     if r.get("injury_fade"):
         bits.append(f"{int(r['games_prev'])} games in 2025 — tested fade, -16 pts")
-    if r.get("young_role"):
+    if r.get("young_role") and not risky:
         bits.append("young with a starter's snap share — tested, +13 pts")
     span = r["ceil_season"] - r["floor_season"]
-    if r["bust_prob"] >= 0.5:
-        bits.append(f"{r['bust_prob']*100:.0f}% chance of finishing below replacement")
+    if r.get("young_role") and risky:
+        bits.append("but young with a starter's snap share — tested, +13 pts")
     elif span >= 180:
         bits.append(f"very wide range: {r['floor_season']:.0f} to {r['ceil_season']:.0f} pts")
     elif r["bust_prob"] <= 0.05 and span <= 130:
@@ -105,6 +112,7 @@ def main_with_edge():
             "games": round(float(r.games_proj), 1),
             "vor": round(float(r.vor_season), 1),
             "bust": round(float(r.bust_prob), 3),
+            "bust_excess": round(float(r.bust_excess), 3) if pd.notna(r.bust_excess) else 0.0,
             "edge": round(float(r.edge_ranks), 1),
             "edge_pts": round(float(r.edge_pts), 1),
             "conf": r["conf"],
