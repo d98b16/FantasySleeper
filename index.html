@@ -268,9 +268,7 @@ footer{margin-top:10px;font-size:10.5px;color:var(--faint);text-align:center;lin
     <div class="card">
       <h2>Plan for your next pick</h2>
       <div id="planBox"></div>
-      <div class="planline why" style="color:var(--faint);border-top:1px solid var(--line)">
-        Board covers the top ${RANKS.length}. A 12&times;12 draft is 144 picks, so the deepest rounds can still run past it.
-      </div>
+      <div class="planline why" id="boardNote" style="color:var(--faint);border-top:1px solid var(--line)"></div>
     </div>
   </div>
 </div>
@@ -852,7 +850,7 @@ function render(animate){
             Math.round(p.lasts.pct*100)}%${p.lasts.est?'<span class="est">~</span>':''}</span>`
         : '<span class="lasts na">—</span>'}</td>
       <td><span class="tierchip">T${p.tier}</span></td>
-    </tr>`).join('') || '<tr><td colspan="8" class="empty">Board exhausted — all ${RANKS.length} ranked players are gone.<br>Rounds 11-12 are past our rankings: take a DEFENSE in the final round, and for the other pick grab the best upside left in Sleeper\'s own list (a backup RB attached to a starter is the best swing).</td></tr>';
+    </tr>`).join('') || `<tr><td colspan="8" class="empty">Board exhausted — all ${RANKS.length} ranked players are gone.<br>A 12&times;12 draft is 144 picks against a ${RANKS.length}-player board, so this is expected in the deepest rounds. Fill any open STARTER from Sleeper's own list first — a defense if DEF is still empty — then take the best upside left (a backup RB attached to a starter is the best swing).</td></tr>`;
   $('baSub').textContent = `${v.avail.length} of ${RANKS.length} left`;
   $('lastsTh').textContent = v.oddsTarget ? `to #${v.oddsTarget}` : 'Lasts';
   $('lastsTh').title = v.oddsTarget
@@ -1020,6 +1018,9 @@ $('demoBtn').onclick   = startDemo;
 $('leagueId').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 
 load();
+$('boardNote').innerHTML = `Board covers the top ${RANKS.length} (${
+  RANKS.filter(p=>p.pos!=='DST').length} skill + ${RANKS.filter(p=>p.pos==='DST').length
+  } defenses). A 12&times;12 draft is 144 picks, so the deepest rounds can still run past it.`;
 renderEdge();
 setStatus('idle', 'not connected — enter a league ID, or run the demo');
 render(false);
