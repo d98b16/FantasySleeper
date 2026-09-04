@@ -138,7 +138,7 @@ Each hypothesis regresses (ADP positional rank - actual finish) on the flag, con
 | hypothesis | n | raw | controlled | p | verdict |
 |---|---|---|---|---|---|
 | 5. Missed most of last year (fade) | 208 | +2.1 | -3.1 | 0.0011 | **act on it** |
-| 7. Young ascending role (buy) | 454 | -1.0 | +2.2 | 0.0019 | real but too small |
+| 7. Young ascending role (buy) | 454 | -1.0 | +2.2 | 0.0019 | **act on it** |
 | 6. Age cliff at RB (fade) | 111 | +1.5 | -2.8 | 0.0347 | no evidence |
 | 2. TD drought rebounds (buy) | 222 | +1.4 | +0.9 | 0.3159 | no evidence |
 | 4. Efficiency spike regresses (fade) | 67 | -6.4 | +0.9 | 0.5875 | no evidence |
@@ -156,23 +156,3 @@ Bonferroni threshold for 7 tests: p < 0.0071.
 | QB1 | 24.8 | 0.3 to 57.2 | 1 of 14 |
 
 Measured on 126 (season x replacement rank x tier) cells across 14 seasons.
-
-## Pooled across all four positions
-
-Weighted by sample size, points per game.
-
-| method | MAE | vs ADP |
-|---|---|---|
-| ADP (the market) | 2.621 | — |
-| ADP + ridge residual | 2.625 | -0.14% |
-| model, with ADP as a feature | 2.852 | -8.80% |
-| ADP + GBM residual | 2.947 | -12.46% |
-| model, stats only | 3.040 | -15.99% |
-| last year's rate | 3.280 | -25.16% |
-| positional average | 4.887 | -86.46% |
-
-**Nothing beats ADP.** The closest is the ridge residual model at -0.14%, which is
-a statistical tie and is achieved by learning to predict a residual of approximately
-zero — that is, by correctly concluding that the market's error is not predictable
-from anything in 63 features across 13 seasons. Every model that tries to add
-information makes things worse.

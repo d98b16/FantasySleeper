@@ -301,10 +301,12 @@ const T = (name, val) => { checks[name] = val; };
       edgesTested: E.players.every(p => Math.abs(p.edge) < 10),
       cols: document.querySelectorAll('#baBody tr:first-child td').length,
       thesis: document.getElementById('thesis').innerText,
+      honesty: E.honesty,
       upRows: document.querySelectorAll('#edgeUp .erow').length,
       dnRows: document.querySelectorAll('#edgeDn .erow').length,
     };
   });
+  const E3 = v3.honesty;
   T('payload is v3', v3.version === 3);
   T('payload records that the model does NOT beat ADP', v3.beatsAdp === false);
   T('payload carries per-position MAE vs ADP', v3.perPos >= 4);
@@ -317,7 +319,12 @@ const T = (name, val) => { checks[name] = val; };
   T('edge values are measured effects, not rank deltas', v3.edgesTested);
   T('best-available has RANGE and BUST columns', v3.cols === 9);
   T('thesis states the model loses to ADP', /loses to ADP/i.test(v3.thesis));
-  T('thesis reports the tested-signal count', /one\b/i.test(v3.thesis));
+  T('thesis reports the tested-signal count', /\btwo\b/i.test(v3.thesis));
+  T('thesis states the refuted v2 signal', /TD-luck regression/i.test(v3.thesis));
+  T('payload records 2 of 7 signals survived',
+    E3.n_survived === 2 && E3.n_tested === 7);
+  T('tested signals carry effects in points, not just ranks',
+    Object.values(E3.tested_signals).every(s => typeof s.effect_pts === 'number'));
   T('both outcome-range lists render', v3.upRows === 8 && v3.dnRows === 8);
 
   T('no JS errors', errors.length === 0);

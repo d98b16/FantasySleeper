@@ -130,14 +130,55 @@ def main():
         ganchor.fit(gtr.adp_pos_rank.values, gtr.y_avail.values)
         te["anchor_avail"] = np.clip(ganchor.predict(te.x_adp_pos_rank.values), 0, 1)
 
-        # ---- SPREAD: the model. ----------------------------------------
+        # ---- SPREAD: the model, CONFORMALISED. -------------------------
         # This is the one thing the market does not give you. ADP is a single
-        # number; the quantile models supply the width around it. The spread is
-        # taken RELATIVE to the model's own median so that a model that is
-        # mis-centred (it is) still contributes a usable shape.
+        # number; the quantile models supply the width around it.
+        #
+        # But raw quantile-GBM intervals are badly overconfident at this sample
+        # size. Measured by calibration.py on 1274 held-out player-seasons, the
+        # nominal 80% interval contained only 61.7% of outcomes: 16.3% fell below
+        # the floor and 22.0% above the ceiling, against 10% each. Shipping those
+        # as "floor" and "ceiling" would be shipping a number I cannot defend.
+        #
+        # So the interval is conformalised. On the TRAINING seasons, normalise
+        # each residual by that player's own predicted spread, take the empirical
+        # 10th and 90th percentiles of the normalised residual, and use those to
+        # set the shipped interval. Coverage is then correct by construction, and
+        # the asymmetry is preserved -- outcomes overshoot more often than they
+        # undershoot, which is real and the raw model missed it.
         med = rate["q50"]
-        spread_lo = np.clip(med - rate["q10"], 0, None)
-        spread_hi = np.clip(rate["q90"] - med, 0, None)
+        raw_lo = np.clip(med - rate["q10"], 1e-6, None)
+        raw_hi = np.clip(rate["q90"] - med, 1e-6, None)
+
+        # SPLIT conformal: the widening factors must come from residuals the
+        # quantile model has NOT seen. An in-sample refit reports that the
+        # intervals are already perfect -- it produced k=1.00 at every position,
+        # which is exactly the failure this is meant to catch. So hold out the
+        # most recent training seasons, fit on the rest, and measure there.
+        k_lo = k_hi = 1.0
+        seasons = sorted(tr.y_season.dropna().unique())
+        if len(seasons) >= 4:
+            cut = seasons[-2]                       # last 2 seasons calibrate
+            fit_part = tr[tr.y_season < cut]
+            cal_part = tr[tr.y_season >= cut]
+            cal = fit_position(fit_part, cal_part, pc, "y_pts_pg") \
+                  if len(fit_part) >= 60 and len(cal_part) >= 40 else None
+            if cal is not None:
+                cm = cal["q50"]
+                clo = np.clip(cm - cal["q10"], 1e-6, None)
+                chi = np.clip(cal["q90"] - cm, 1e-6, None)
+                resid = cal_part.y_pts_pg.values - cm
+                fin = np.isfinite(resid)
+                below = resid[fin] < 0
+                # how many predicted spreads out does the true 10th/90th pct sit?
+                if below.sum() > 25:
+                    k_lo = np.quantile(np.abs(resid[fin][below] / clo[fin][below]), 0.80)
+                if (~below).sum() > 25:
+                    k_hi = np.quantile(resid[fin][~below] / chi[fin][~below], 0.80)
+        k_lo, k_hi = float(np.clip(k_lo, 0.8, 4.0)), float(np.clip(k_hi, 0.8, 4.0))
+        print(f"    {pos} conformal widening: floor x{k_lo:.2f}  ceiling x{k_hi:.2f}")
+        spread_lo = raw_lo * k_lo
+        spread_hi = raw_hi * k_hi
         te["mean_pg"] = te.anchor_pg
         te["floor_pg"] = np.clip(te.anchor_pg - spread_lo, 0, None)
         te["ceil_pg"] = te.anchor_pg + spread_hi
@@ -159,16 +200,34 @@ def main():
         # Measuring it against replacement made every player drafted after the
         # starter cutoff "100% bust" -- a WR taken in round 10 who finishes WR35
         # is not a bust, he is exactly what you paid for. Bust here is the chance
-        # of returning less than 70% of his own projection, read off the fitted
-        # quantile fan by interpolating the CDF.
+        # of returning less than 70% of his own projection.
+        #
+        # It is computed on SEASON points, not on the per-game rate. Measured on
+        # the rate alone it came out ~0 for 81% of quarterbacks, because a QB who
+        # plays scores predictably per game -- but a QB's actual risk is not
+        # playing at all, which lives entirely in the games term. Folding
+        # availability in is what makes the number mean what it says.
         qs = np.array(QUANTILES)
         fan = np.column_stack([rate[f"q{int(q*100)}"] for q in qs])
         fan = np.sort(fan, axis=1)                 # enforce monotone quantiles
-        med = fan[:, len(qs) // 2]
-        shifted = fan - med[:, None] + te.anchor_pg.values[:, None]
-        thresh = 0.70 * te.anchor_pg.values
+        fmed = fan[:, len(qs) // 2]
+        # widen the fan by the same conformal factors, so bust probability is
+        # read off the calibrated distribution rather than the overconfident one
+        dev = fan - fmed[:, None]
+        dev = np.where(dev < 0, dev * k_lo, dev * k_hi)
+        shifted = dev + te.anchor_pg.values[:, None]
+        # project the rate fan onto season points: the low tail also carries the
+        # availability floor, the high tail assumes a full 17 games
+        gproj = te.games_proj.values
+        gfloor = np.where(np.isfinite(te.games_floor.values), te.games_floor.values, gproj)
+        gmul = np.where(shifted < te.anchor_pg.values[:, None],
+                        gfloor[:, None],
+                        np.linspace(1.0, 17.0 / np.maximum(gproj, 1e-6), len(qs))
+                        .T * gproj[:, None])
+        season_fan = np.sort(shifted * gmul, axis=1)
+        thresh = 0.70 * (te.anchor_pg.values * gproj)
         bust = np.array([np.interp(t, row, qs, left=0.0, right=1.0)
-                         for t, row in zip(thresh, shifted)])
+                         for t, row in zip(thresh, season_fan)])
         te["bust_prob"] = np.clip(bust, 0, 1)
         # P(below the position's replacement line) kept separately: it is the
         # right question for a STARTER slot even though it is the wrong one for

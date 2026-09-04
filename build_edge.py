@@ -37,12 +37,16 @@ import league
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT  = os.path.join(HERE, "data")
 
-# measured effects, in positional ranks, from edge_tests.py
+# Measured effects from edge_tests.py, in SEASON POINTS against a walk-forward
+# ADP-implied expectation. Both clear Bonferroni for seven tests (p<0.0071).
+# Reported in points rather than positional ranks because a rank near the top of
+# a position is worth several times what a rank in the 40s is worth -- judging
+# by ranks is what made an earlier version wrongly demote young_role.
 SIGNALS = {
-    "injury_fade": dict(effect=-3.1, p=0.0011, label="9 or fewer games last season",
-                        tested=True),
-    "young_role":  dict(effect=+2.2, p=0.0019, label="under 25 with a starter's snap share",
-                        tested=True),
+    "young_role":  dict(effect_pts=+13.3, effect_ranks=+2.2, p=0.0009,
+                        label="24 or younger with a starter's snap share", tested=True),
+    "injury_fade": dict(effect_pts=-16.0, effect_ranks=-3.1, p=0.0028,
+                        label="9 or fewer games last season", tested=True),
 }
 
 
@@ -51,9 +55,9 @@ def human_why(r):
     only -- no scores, and nothing that failed its own test."""
     bits = []
     if r.get("injury_fade"):
-        bits.append(f"{int(r['games_prev'])} games in 2025 — tested fade, -3.1 ranks")
+        bits.append(f"{int(r['games_prev'])} games in 2025 — tested fade, -16 pts")
     if r.get("young_role"):
-        bits.append("young with a starter's snap share — tested, +2.2 ranks")
+        bits.append("young with a starter's snap share — tested, +13 pts")
     span = r["ceil_season"] - r["floor_season"]
     if r["bust_prob"] >= 0.5:
         bits.append(f"{r['bust_prob']*100:.0f}% chance of finishing below replacement")
@@ -84,8 +88,10 @@ def main_with_edge():
     P["young_role"] = ((P.get("x_age", pd.Series(np.nan, index=P.index)) <= 24)
                        & (P.x_snap_pct_1 >= 0.55)).fillna(False)
     # net tested edge, in positional ranks, at measured size and nothing more
-    P["edge_ranks"] = (P.injury_fade.astype(float) * SIGNALS["injury_fade"]["effect"]
-                       + P.young_role.astype(float) * SIGNALS["young_role"]["effect"])
+    P["edge_ranks"] = (P.injury_fade.astype(float) * SIGNALS["injury_fade"]["effect_ranks"]
+                       + P.young_role.astype(float) * SIGNALS["young_role"]["effect_ranks"])
+    P["edge_pts"] = (P.injury_fade.astype(float) * SIGNALS["injury_fade"]["effect_pts"]
+                     + P.young_role.astype(float) * SIGNALS["young_role"]["effect_pts"])
     P["why"] = P.apply(lambda r: human_why(r), axis=1)
 
     players = []
@@ -100,6 +106,7 @@ def main_with_edge():
             "vor": round(float(r.vor_season), 1),
             "bust": round(float(r.bust_prob), 3),
             "edge": round(float(r.edge_ranks), 1),
+            "edge_pts": round(float(r.edge_pts), 1),
             "conf": r["conf"],
             "flags": [k for k in ("injury_fade", "young_role") if bool(r.get(k))],
             "why": r["why"],
@@ -155,6 +162,7 @@ def main_with_edge():
                        "order stays ADP. What the model adds is the outcome range."),
             "per_position": verdict,
             "tested_signals": SIGNALS,
+            "n_tested": 7, "n_survived": 2,
             "failed_signals": (tests[tests.passes == False].test.tolist()
                                if len(tests) and "passes" in tests else []),
         },

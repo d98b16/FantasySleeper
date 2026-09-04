@@ -36,38 +36,58 @@ depth-chart moves, trades, and injuries that happened in August.
 I would bet on this result. It replicated across every position, both targets
 (rate and season total), and every model class I tried.
 
-## The one thing that survived
+## The two things that survived
 
 Seven edge hypotheses, each stated before it was tested, each evaluated with
-draft price controlled (regression of "beat your ADP" on the flag, controlling
-for ADP positional rank, position and season):
+draft price controlled (regression on the flag, controlling for ADP positional
+rank linearly and quadratically, plus position and season fixed effects).
 
-| hypothesis | raw gap | controlled | p | verdict |
+Effects are given in **season points**, measured directly against a walk-forward
+isotonic ADP-implied expectation. They are *not* converted from positional ranks:
+a rank near the top of a position is worth several times what a rank in the 40s
+is worth, so a flat rank hurdle quietly demands a much larger real effect from
+any signal that fires on expensive players.
+
+| hypothesis | raw gap (ranks) | controlled (pts) | p | verdict |
 |---|---|---|---|---|
-| Missed most of last year (fade) | +2.1 | **−3.1** | 0.0011 | act on it |
-| Young ascending role (buy) | −1.0 | +2.2 | 0.0019 | real, too small |
-| Age cliff at RB (fade) | +1.5 | −2.8 | 0.0347 | no evidence after correction |
-| TD drought rebounds (buy) | +1.4 | +0.9 | 0.3159 | no evidence |
-| Efficiency spike regresses (fade) | −6.4 | +0.9 | 0.5875 | no evidence |
-| Opportunity without production (buy) | +3.5 | +0.5 | 0.6728 | no evidence |
-| **TD luck regresses (fade)** | **−5.1** | **+0.2** | **0.8043** | **no evidence** |
+| **Young ascending role (buy)** | −1.0 | **+13.3** | 0.0009 | **act on it** |
+| **Missed most of last year (fade)** | +2.1 | **−16.0** | 0.0028 | **act on it** |
+| Age cliff at RB (fade) | +1.5 | −17.2 | 0.0189 | fails Bonferroni |
+| TD drought rebounds (buy) | +1.4 | +7.5 | 0.1441 | no evidence |
+| Opportunity without production (buy) | +3.5 | +6.7 | 0.2626 | no evidence |
+| Efficiency spike regresses (fade) | −6.4 | +9.6 | 0.2934 | no evidence |
+| **TD luck regresses (fade)** | **−5.1** | **+0.3** | **0.9416** | **no evidence** |
 
-Read the two middle columns together. The raw gaps are large and several are
-highly significant. **They all collapse once draft price is controlled.** The
-market has already priced TD regression, efficiency regression, age, and
+Read the middle columns together. The raw gaps are large and several are highly
+significant. **They mostly collapse once draft price is controlled.** The market
+has already priced TD regression, efficiency regression and
 opportunity-without-production. What looks like an edge in a spreadsheet is
-mostly a restatement of how cheap the player already was.
+usually a restatement of how cheap the player already was.
 
 **This refutes what this tool shipped last year.** v2's edge column was built on
 TD-luck regression. Measured across 13 seasons with price controlled, that signal
-is worth **+0.2 positional ranks at p=0.80** — indistinguishable from nothing.
-The v2 finding was a real statistical pattern that the market had already
-absorbed. It has been removed.
+is worth **+0.3 season points at p=0.94** — indistinguishable from nothing. The
+v2 finding was a real statistical pattern that the market had already absorbed.
+It has been removed.
 
-The one survivor: a player who played **9 or fewer games last season** finishes
-about **3 positional ranks below his ADP**, even after the discount the market
-already applies. It survives Bonferroni correction for seven tests. It is worth a
-tiebreak, not a round.
+The two survivors, both clearing Bonferroni for seven tests:
+
+- **A player who played 9 or fewer games last season returns ~16 fewer points
+  than his price implies**, even after the discount the market already applies.
+- **A player 24 or younger with a starter's snap share returns ~13 more.**
+
+For scale, that is the same order as the 6-point passing TD rule's +13.4, which
+this document calls a genuine edge — so it gets the same treatment in both
+directions.
+
+> **Correction.** An earlier version of this document said "1 of 7" and demoted
+> the young-ascending-role result to "too small to act on". That was an artifact
+> of judging effects with a flat 3-positional-rank hurdle, which is
+> scale-dependent: the flagged players sit at median positional rank 19, where a
+> rank is worth far more than at the rank 40 where the injury signal fires. An
+> adversarial review caught it. Measured directly in points, the two effects are
+> statistically indistinguishable in size, and young-ascending-role has the lower
+> p-value.
 
 ## What repeats and what is noise
 
@@ -163,8 +183,10 @@ season.
 2. **The 6-point rule is worth ~13 points a season to a top-6 QB**, positive in
    all 14 seasons. Real, small, and now properly bounded.
 3. **ADP is hard to beat.** Six model families, ten held-out seasons, zero wins.
-4. **Heavy games-missed last year is a genuine fade**, worth about 3 positional
-   ranks after the market's own discount.
+4. **Heavy games-missed last year is a genuine fade**, worth about 16 season
+   points after the market's own discount.
+5. **Young with a starter's snap share is a genuine buy**, worth about 13 season
+   points on the same test.
 
 ## What I would not bet on
 
@@ -172,8 +194,10 @@ season.
    advantage including ADP itself as a feature.
 2. **The TD-regression edge** — refuted at p=0.80 once price is controlled.
    I shipped this last year and I was wrong.
-3. **The RB age cliff.** Directionally right (−2.8 ranks) but p=0.035, which does
-   not survive correction for seven tests. Suggestive, not established.
+3. **The RB age cliff.** The effect is large (−17.2 season points) but p=0.019,
+   which does not survive correction for seven tests. Suggestive, not established
+   — and note it is the one place where a bigger effect than either survivor
+   still fails, which is what a multiple-testing correction is for.
 4. **Any individual player projection.** The out-of-sample MAE is ~2.6 points per
    game, which over a season is ±45 points. The floor/ceiling range in the
    console is the honest representation; the mean alone is not.
@@ -189,8 +213,11 @@ season.
   not the order. The console now shows a floor, a ceiling, and a bust
   probability at each pick, which is what ADP cannot give you.
 - **Weight availability more than you probably do.** It is the dominant cause of
-  draft-day disasters, it is the only signal that survived testing, and it is the
-  one thing where "he was hurt last year" is genuinely informative.
+  draft-day disasters, it is one of the two signals that survived testing, and it
+  is the one thing where "he was hurt last year" is genuinely informative.
+- **Break ties toward young players who already have the snaps.** The other
+  survivor. Not a reason to reach, but a reason to prefer the 23-year-old with a
+  70% snap share over the 28-year-old at the same price.
 - **Take the QB later than the 6-point rule tempts you to** — the edge is real
   but it is ~13 points, and an RB1 is worth 200.
 - **In the last four rounds, take the widest ceiling, not the highest floor.**

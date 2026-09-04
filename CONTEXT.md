@@ -76,10 +76,15 @@ Six model families, four positions, ten held-out seasons, zero wins. The best re
 is a tie, reached by a regularised model learning to predict a residual of ~zero.
 
 **Seven edge hypotheses were pre-registered and tested with draft price controlled.
-One survived**: 9 or fewer games last season predicts finishing ~3 positional ranks
-below ADP (p=0.0011, survives Bonferroni). Every other raw effect collapsed once
-price was controlled -- including **TD-luck regression, which v2 shipped as its edge
-column and which is worth +0.2 ranks at p=0.80**. The market had already priced it.
+Two survived**, both measured in season points against a walk-forward ADP-implied
+expectation and both clearing Bonferroni:
+
+    young + starter's snap share (buy)   +13.3 pts   p=0.0009
+    9 or fewer games last season (fade)  -16.0 pts   p=0.0028
+
+Every other raw effect collapsed once price was controlled -- including **TD-luck
+regression, which v2 shipped as its edge column and which is worth +0.3 season points
+at p=0.94**. The market had already priced it.
 
 Consequence for the console: the board order stays ADP. What the model contributes
 is the **outcome range** -- floor, ceiling, bust probability -- which a single ADP
