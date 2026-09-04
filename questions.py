@@ -13,6 +13,7 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 import features, league
+from scipy import stats
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT  = os.path.join(HERE, "data")
@@ -225,6 +226,63 @@ def main():
     q_injuries(panel)
     q_team_stability(panel)
     q_mispriced(p)
+    q_rookies(panel, adp)
+
+
+
+
+# ---------------------------------------------------------------------------
+def q_rookies(panel, adp):
+    """v2 excluded all six rookies from the edge table outright. Was that right,
+    or is there signal in draft capital and landing spot?"""
+    print("\n" + "=" * 76)
+    print("Q: how predictable are rookies? was excluding them right?")
+    print("=" * 76)
+    p = panel.copy()
+    first = p.groupby("player_id").season.transform("min")
+    p["is_rookie"] = (p.season == first) & (p.exp.fillna(9) <= 0)
+    # fall back to first-observed-season when exp is missing
+    p.loc[p.exp.isna(), "is_rookie"] = (p.season == first)
+    r = p[p.is_rookie & p.position.isin(league.SKILL)].copy()
+    a = adp.dropna(subset=["player_id"])[["player_id", "season", "adp", "adp_pos_rank"]]
+    r = r.merge(a, on=["player_id", "season"], how="left")
+    r["drafted"] = r.adp.notna()
+    print(f"n = {len(r)} rookie seasons, {int(r.season.min())}-{int(r.season.max())}")
+    print(f"  of these, {int(r.drafted.sum())} ({r.drafted.mean():.0%}) had an ADP "
+          f"-- the rest went undrafted in fantasy\n")
+
+    r["pg"] = r.pts / r.games.replace(0, np.nan)
+    print("rookie production by NFL draft round:")
+    r["rd"] = r.draft_round.fillna(8).clip(upper=8)
+    t = r.groupby("rd").agg(n=("pg", "size"), games=("games", "mean"),
+                            pts_pg=("pg", "mean"),
+                            hit_rate=("pg", lambda s: (s >= 10).mean()))
+    t.index = [f"round {int(i)}" if i < 8 else "undrafted/late" for i in t.index]
+    print(t.round(2).to_string())
+
+    d = r[r.draft_pick.notna() & r.pg.notna()]
+    if len(d) > 50:
+        rho = stats.spearmanr(d.draft_pick, d.pg).correlation
+        print(f"\n  Spearman(NFL draft pick, rookie pts/game) = {rho:+.3f}  (n={len(d)})")
+        print(f"  -> draft capital explains r2 = {rho**2:.3f} of rookie scoring")
+    dd = r[r.adp_pos_rank.notna() & r.pg.notna()]
+    if len(dd) > 50:
+        rho2 = stats.spearmanr(dd.adp_pos_rank, dd.pg).correlation
+        print(f"  Spearman(fantasy ADP,    rookie pts/game) = {rho2:+.3f}  (n={len(dd)})")
+        print(f"  -> the fantasy market prices rookies "
+              f"{'BETTER' if abs(rho2) > abs(rho) else 'no better'} than NFL draft capital alone")
+
+    by_pos = r[r.pg.notna()].groupby("position").agg(
+        n=("pg", "size"), pts_pg=("pg", "mean"),
+        top24=("pg", lambda s: (s >= s.quantile(0.9)).mean()))
+    print("\nrookie scoring by position:")
+    print(by_pos.round(2).to_string())
+    print("\n  VERDICT: draft capital carries real but modest information, and the")
+    print("  fantasy market already reflects it. Excluding rookies from a MODEL is")
+    print("  correct -- they have no prior-season features by construction, so a")
+    print("  model has nothing to say. Excluding them from the BOARD would be wrong:")
+    print("  ADP prices them, and ADP is what wins here.")
+    return r
 
 
 if __name__ == "__main__":

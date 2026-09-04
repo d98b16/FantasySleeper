@@ -372,7 +372,12 @@ def finalize(panel):
     panel["yac_per_rec"] = panel.receiving_yards_after_catch / panel.receptions.replace(0, np.nan)
     panel["yac_per_carry"] = panel.ruy_ac / panel.carries.replace(0, np.nan)
     panel["games_missed"] = (panel.sched_games - panel.games).clip(lower=0)
-    panel["avail"] = panel.games / panel.sched_games
+    # A player traded mid-season can appear in MORE game-weeks than one team's
+    # schedule, because his old and new teams bye in different weeks: Rashid
+    # Shaheed played 18 in 2025, Emmanuel Sanders 17 in 2019. That is real, not a
+    # data error, but availability is a rate and cannot exceed 1.
+    panel["avail"] = (panel.games / panel.sched_games).clip(upper=1.0)
+    panel["traded_midseason"] = (panel.teams_played.fillna(1) > 1).astype(int)
     panel["sixpt_gap"] = panel.pts - panel.pts4
     return panel
 

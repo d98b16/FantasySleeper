@@ -277,6 +277,40 @@ const T = (name, val) => { checks[name] = val; };
   await page.evaluate(() => { window.DRAFT.S.picks = []; window.DRAFT.S.taken = new Set(); });
   await page.setViewportSize({ width: 1440, height: 1200 });
 
+  // ---------- 11. v3 payload: outcome ranges, and honesty about ADP ----------
+  const v3 = await page.evaluate(() => {
+    const E = window.DRAFT.EDGE;
+    return {
+      version: E.version,
+      beatsAdp: E.honesty && E.honesty.model_beats_adp,
+      perPos: Object.keys((E.honesty || {}).per_position || {}).length,
+      sixSeasons: ((E.sixpoint || {}).top6 || {}).seasons,
+      n: E.players.length,
+      ordered: E.players.every(p => p.floor <= p.ceil + 1e-9),
+      bustRange: E.players.every(p => p.bust >= 0 && p.bust <= 1),
+      hasConf: E.players.every(p => ['high','med','low','none'].includes(p.conf)),
+      edgesTested: E.players.every(p => Math.abs(p.edge) < 10),
+      cols: document.querySelectorAll('#baBody tr:first-child td').length,
+      thesis: document.getElementById('thesis').innerText,
+      upRows: document.querySelectorAll('#edgeUp .erow').length,
+      dnRows: document.querySelectorAll('#edgeDn .erow').length,
+    };
+  });
+  T('payload is v3', v3.version === 3);
+  T('payload records that the model does NOT beat ADP', v3.beatsAdp === false);
+  T('payload carries per-position MAE vs ADP', v3.perPos >= 4);
+  T('6-point result is multi-season', v3.sixSeasons >= 13);
+  T('every player floor <= ceiling', v3.ordered);
+  T('every bust probability in [0,1]', v3.bustRange);
+  T('every player has a confidence marker', v3.hasConf);
+  // the edge column now carries only measured effects (~3 ranks), never v2's
+  // rank deltas which ran to +/-69
+  T('edge values are measured effects, not rank deltas', v3.edgesTested);
+  T('best-available has RANGE and BUST columns', v3.cols === 9);
+  T('thesis states the model loses to ADP', /loses to ADP/i.test(v3.thesis));
+  T('thesis reports the tested-signal count', /one\b/i.test(v3.thesis));
+  T('both outcome-range lists render', v3.upRows === 8 && v3.dnRows === 8);
+
   T('no JS errors', errors.length === 0);
 
   let fail = 0;
