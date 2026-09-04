@@ -50,12 +50,23 @@ The rule lifts **every** QB, the streamer included:
 
 So the elite QB's edge over a streamer grows by **0.41 pts/game**. Repeating the whole
 measurement across **two seasons (2024 and 2025) x three replacement ranks (QB11/13/15)**
-puts the gain at **7-19 points across a full season, median 12.5** — under a point a
-game. Measured against QB1 specifically it is ~0 or negative. It is not worth a
-5th-round pick.
+puts a top-6 QB's gain at **7-19 points across a full season, median 12.5** — at most
+about a point a game.
 
-For scale, value over replacement across a season: best QB ~60 pts, best TE ~113,
-best WR ~117, best RB ~227. **Wait on QB until round 9.**
+The *single best* QB is a different and much noisier question, because it rides one
+player's passing-TD total: across the same six cells it ranges **-3.8 to +34.4, median
++16.1**. An earlier version of this file claimed it was "~0 or negative" — that was
+measured on 2025 alone and is **wrong**; 2024 gives +15 to +34 at every rank. A number
+that swings 38 points between two seasons is not something to plan a draft around in
+either direction.
+
+Note what the "wait on QB" recommendation actually rests on: **not** this gain, but the
+value-over-replacement scale below. Even the top of the QB1 range (~34 pts) is small
+next to an RB1 worth ~228.
+
+For scale, value over replacement across a season (computed by `build_edge.py`, and the
+actual basis for the recommendation): best QB ~53 pts, best TE ~113, best WR ~117,
+**best RB ~228**. **Wait on QB until round 9.**
 
 Second: **rushing TDs are already 6 points in every format**, so the rule rewards
 *passing-TD volume* and nothing else. The gain is exactly `2 x passing TDs`.

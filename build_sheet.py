@@ -109,7 +109,7 @@ scenarios = [
     "GIBBS OR BIJAN SLIDES TO 3: take him. Then go WR + WR at 22/27 (A.J. Brown / Nico + Nabers / Flowers) — your RB1 is already banked.",
     "JEANTY FALLS TO 22: ankle discount, not a red flag — and you have 2 IR slots, so a slow start is survivable. Otherwise Walker is the safe anchor.",
     "ROSTER SHAPE: 12 rounds, 8 starters (QB/RB/RB/WR/WR/TE/FLEX/DEF), 4 bench, NO KICKER. Every pick is a roster spot — there is no room for dead weight.",
-    "QB, MEASURED (nflverse 2024+2025, re-scored to 6-pt): the rule lifts the STREAMER from 17.4 to 20.9 pts/g and the top-6 from 20.7 to 24.5 — the elite QB's ADVANTAGE grows only 7-19 pts across a WHOLE SEASON (median 12.5 over 2 seasons x 3 replacement ranks). For scale, value over replacement: best QB ~60, best TE ~113, best WR ~117, best RB ~227. The rule pays exactly 2 pts per PASSING TD and nothing for rushing, so judge a QB on passing-TD volume, not on being a dual-threat. Wait until round 9.",
+    "QB, MEASURED (nflverse 2024+2025, re-scored to 6-pt): the rule lifts the STREAMER too, so a top-6 QB's ADVANTAGE grows only 7-19 pts across a WHOLE SEASON (median 12.5 over 2 seasons x 3 replacement ranks). The single best QB is much noisier (-4 to +34) and not worth planning around. The real reason to wait is value over replacement: best QB ~53 pts, best TE ~113, best WR ~117, best RB ~228. The rule pays exactly 2 pts per PASSING TD and nothing extra for rushing, so judge a QB on passing-TD volume. Wait until round 9.",
 ]
 sr = r + 1
 sb = ws.cell(sr, 1, "TURN SCENARIOS — PICKS 22 & 27 (you pick back-to-back)")

@@ -240,6 +240,43 @@ const T = (name, val) => { checks[name] = val; };
   T('no ${...} leaks into rendered copy in any board state', copy.leak === false);
   T('board-size copy reports the real board length', copy.mentionsSize);
 
+  // ---------- 9. the demo must finish, not silently freeze ----------
+  const demo = await page.evaluate(() => {
+    const { S, CONFIG, startDemo } = window.DRAFT;
+    startDemo();
+    for (let i = 0; i < 400; i++) { if (!S.demoTimer && i > 3) break; demoStep(); }
+    return { picks: S.picks.length, timer: !!S.demoTimer,
+             target: CONFIG.teams * CONFIG.rounds,
+             status: document.getElementById('statusTx').textContent,
+             boardSize: JSON.parse(document.getElementById('ranksData').textContent).ranks.length };
+  });
+  // bots avoid DSTs until the last rounds; with fewer non-DST players than picks
+  // the pool empties, and the demo used to stall there with no message at all
+  T('demo drafts the whole board, not just the non-DST part',
+    demo.picks >= demo.boardSize - 1);
+  T('demo stops cleanly with a reason', !demo.timer && /complete|stopped/.test(demo.status));
+  T('demo says how far it got', /\d/.test(demo.status));
+
+  // ---------- 10. no horizontal page scroll on a phone ----------
+  for (const w of [360, 390, 414]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.evaluate(() => {
+      const { S, norm, render } = window.DRAFT;
+      const R = JSON.parse(document.getElementById('ranksData').textContent).ranks;
+      document.getElementById('setup').hidden = true;
+      S.picks = R.slice(0, 40).map((x, i) => ({ pickNo: i + 1, round: Math.ceil((i + 1) / 12),
+        slot: (i % 12) + 1, name: x.name, pos: x.pos, team: x.team, ranked: x, injury: '' }));
+      S.taken = new Set(S.picks.map(p => p.ranked.pos === 'DST'
+        ? p.ranked.team.toUpperCase() : norm(p.ranked.name)));
+      render(false);
+    });
+    const fits = await page.evaluate(() =>
+      document.documentElement.scrollWidth <= window.innerWidth);
+    T(`no horizontal page scroll at ${w}px`, fits);
+  }
+  await page.evaluate(() => { window.DRAFT.S.picks = []; window.DRAFT.S.taken = new Set(); });
+  await page.setViewportSize({ width: 1440, height: 1200 });
+
   T('no JS errors', errors.length === 0);
 
   let fail = 0;

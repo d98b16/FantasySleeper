@@ -133,7 +133,12 @@ def main():
     bridge = ro.dropna(subset=["gsis_id","pfr_id"]).sort_values("week") \
                .groupby("pfr_id", as_index=False).tail(1)[["gsis_id","pfr_id"]]
     sn = pd.read_parquet(os.path.join(RAW,"snap_counts_2025.parquet"))
-    sn = sn[(sn.game_type=="REG") & (sn.position.isin(SKILL))]
+    # Do NOT filter on snap_counts.position: it carries PFR codes, where running
+    # backs appear as HB and fullbacks as FB. Filtering to QB/RB/WR/TE silently
+    # dropped 226 rows across 17 players -- Chase Brown, a top-30 board player,
+    # lost his entire snap share. Join on player id and let the stats table's
+    # position govern instead.
+    sn = sn[sn.game_type == "REG"]
     sn = sn.merge(bridge, left_on="pfr_player_id", right_on="pfr_id", how="left")
     snap = sn.dropna(subset=["gsis_id"]).groupby("gsis_id", as_index=False) \
              .agg(snap_pct=("offense_pct","mean"), snap_games=("offense_pct","size"))
@@ -178,38 +183,62 @@ def main():
     # A player far above his expected TDs got lucky; luck does not repeat, so we
     # re-score him at his expected TD count. This is the concrete implementation
     # of "don't let a lucky TD year masquerade as a projection".
-    def zone_rate(frame, kind):
-        """P(touchdown | one opportunity of `kind` in this frame)."""
-        if kind == "rush":
-            f = frame[frame.rush_attempt == 1]
-            return (f.rush_touchdown.sum() / len(f)) if len(f) else 0.0
-        f = frame[(frame.pass_attempt == 1) & frame.receiver_player_id.notna()]
-        return (f.pass_touchdown.sum() / len(f)) if len(f) else 0.0
+    # Rates must be POSITION-SPECIFIC. A single league-wide rate per zone is
+    # calibrated in aggregate but badly biased per position -- a QB sneak from the
+    # 1 converts nothing like a WR carry, so pooling them inflated QB xTD by ~28%
+    # and deflated RB xTD by ~11%. Attach each play's position from the stats
+    # table and fit within position, falling back to the pooled rate where a
+    # position/zone cell is too thin to estimate.
+    POSMAP = dict(zip(wk.player_id, wk.position))
+    pbp = pbp.copy()
+    pbp["rush_pos"] = pbp.rusher_player_id.map(POSMAP)
+    pbp["rec_pos"]  = pbp.receiver_player_id.map(POSMAP)
 
-    inside10 = pbp[pbp.yardline_100 <= 10]
-    ring1120 = pbp[(pbp.yardline_100 > 10) & (pbp.yardline_100 <= 20)]
+    def zone_rates(frame, kind, min_n=40):
+        """P(TD | one opportunity), per position, with a pooled fallback."""
+        if kind == "rush":
+            f = frame[(frame.rush_attempt == 1) & frame.rush_pos.notna()]
+            td, key = "rush_touchdown", "rush_pos"
+        else:
+            f = frame[(frame.pass_attempt == 1) & frame.rec_pos.notna()]
+            td, key = "pass_touchdown", "rec_pos"
+        pooled = (f[td].sum() / len(f)) if len(f) else 0.0
+        out = {"*": pooled}
+        for pos, g in f.groupby(key):
+            out[pos] = (g[td].sum() / len(g)) if len(g) >= min_n else pooled
+        return out
+
+    inside10  = pbp[pbp.yardline_100 <= 10]
+    ring1120  = pbp[(pbp.yardline_100 > 10) & (pbp.yardline_100 <= 20)]
     outside20 = pbp[pbp.yardline_100 > 20]
     RATES = {
-        "i10_rush":  zone_rate(inside10,  "rush"),
-        "i10_rec":   zone_rate(inside10,  "rec"),
-        "rz_rush":   zone_rate(ring1120,  "rush"),
-        "rz_rec":    zone_rate(ring1120,  "rec"),
-        "out_rush":  zone_rate(outside20, "rush"),
-        "out_rec":   zone_rate(outside20, "rec"),
+        "i10_rush":  zone_rates(inside10,  "rush"),
+        "i10_rec":   zone_rates(inside10,  "rec"),
+        "rz_rush":   zone_rates(ring1120,  "rush"),
+        "rz_rec":    zone_rates(ring1120,  "rec"),
+        "out_rush":  zone_rates(outside20, "rush"),
+        "out_rec":   zone_rates(outside20, "rec"),
     }
-    print("  TD rates/opportunity: " + "  ".join(f"{k}={v:.3f}" for k, v in RATES.items()))
+    for k, v in RATES.items():
+        shown = "  ".join(f"{p}={v[p]:.3f}" for p in ("*", "QB", "RB", "WR", "TE") if p in v)
+        print(f"  TD rate {k:9} {shown}")
+
+    def rate_for(key):
+        """Vectorised per-player rate lookup for RATES[key], by his position."""
+        tbl = RATES[key]
+        return agg.position.map(lambda p: tbl.get(p, tbl["*"])).astype(float)
 
     # split each player's opportunities into the same three zones
     agg["ring_carries"] = (agg.rz_carries - agg.i10_carries).clip(lower=0)
     agg["ring_targets"] = (agg.rz_targets - agg.i10_targets).clip(lower=0)
     agg["out_carries"]  = (agg.carries - agg.rz_carries).clip(lower=0)
     agg["out_targets"]  = (agg.targets - agg.rz_targets).clip(lower=0)
-    agg["xtd"] = (agg.i10_carries  * RATES["i10_rush"]
-                + agg.ring_carries * RATES["rz_rush"]
-                + agg.out_carries  * RATES["out_rush"]
-                + agg.i10_targets  * RATES["i10_rec"]
-                + agg.ring_targets * RATES["rz_rec"]
-                + agg.out_targets  * RATES["out_rec"])
+    agg["xtd"] = (agg.i10_carries  * rate_for("i10_rush")
+                + agg.ring_carries * rate_for("rz_rush")
+                + agg.out_carries  * rate_for("out_rush")
+                + agg.i10_targets  * rate_for("i10_rec")
+                + agg.ring_targets * rate_for("rz_rec")
+                + agg.out_targets  * rate_for("out_rec"))
     agg["actual_td"] = agg.rushing_tds + agg.receiving_tds
     agg["td_oe"] = agg.actual_td - agg.xtd            # + = lucky, - = due positive regression
 
@@ -335,7 +364,7 @@ def main():
             who  = "(pool short)"
         repl_pts[pos] = base
         agg.loc[m, "vor_pg"] = agg.loc[m, "proj_pg"] - base
-        print(f"    {pos}{rk-1:>3} replacement = {base:5.2f} pts/g  ({who})")
+        print(f"    {pos}{rk:>3} replacement = {base:5.2f} pts/g  ({who})")
     # shrink unreliable samples toward replacement (vor -> 0)
     agg["vor_pg"] = agg.vor_pg * agg.reliability
     agg["vor_season"] = agg.vor_pg * 17.0
@@ -344,21 +373,26 @@ def main():
     # The naive claim "6-pt TDs make QBs more valuable" is wrong on its own: the
     # rule lifts EVERY QB, replacement included. What actually changes is the
     # SPREAD between an elite QB and a replacement QB. Measure exactly that.
-    def qb_spread(frame, rk):
-        """Elite-QB advantage over replacement, at 4-pt vs 6-pt passing TDs."""
+    def qb_spread(frame, rk, n_top=6):
+        """Elite-QB advantage over replacement, at 4-pt vs 6-pt passing TDs.
+
+        n_top=6 is the headline (a top-6 QB). n_top=1 answers the different and
+        narrower question 'what does the single best QB gain', which moves around
+        far more because it rides one player's passing-TD total."""
         q = frame[frame.games >= 8]
         if len(q) < rk:
             return None
         q4 = q.sort_values("pts_pub4_pg", ascending=False)
         q6 = q.sort_values("pts_league_pg", ascending=False)
         r4, r6 = float(q4.iloc[rk-1].pts_pub4_pg), float(q6.iloc[rk-1].pts_league_pg)
-        t4, t6 = float(q4.head(6).pts_pub4_pg.mean()), float(q6.head(6).pts_league_pg.mean())
+        t4 = float(q4.head(n_top).pts_pub4_pg.mean())
+        t6 = float(q6.head(n_top).pts_league_pg.mean())
         return dict(repl4=r4, repl6=r6, top4=t4, top6=t6,
                     spread4=t4-r4, spread6=t6-r6, gain=(t6-r6)-(t4-r4))
 
     # Replicate on 2024. If the result only holds in one season at one
     # replacement rank, it is noise and must be reported as such.
-    REPL_YEARS = {}
+    REPL_YEARS, QB1_YEARS = {}, {}
     for yr in (2024, 2025):
         f = os.path.join(RAW, f"stats_player_week_{yr}.parquet")
         if not os.path.exists(f):
@@ -371,7 +405,9 @@ def main():
         ya["pts_league_pg"] = ya.pl / ya.games
         ya["pts_pub4_pg"]   = ya.pp / ya.games
         REPL_YEARS[yr] = {rk: qb_spread(ya, rk) for rk in (11, 13, 15)}
+        QB1_YEARS[yr]  = {rk: qb_spread(ya, rk, n_top=1) for rk in (11, 13, 15)}
     gains = [v["gain"] * 17 for yr in REPL_YEARS for v in REPL_YEARS[yr].values() if v]
+    gains1 = [v["gain"] * 17 for yr in QB1_YEARS for v in QB1_YEARS[yr].values() if v]
 
     qb = agg[(agg.position == "QB") & (agg.games >= 8)].copy()
     qb_rk = REPL_RANK["QB"]
@@ -398,6 +434,12 @@ def main():
             "gain_season_hi": round(max(gains), 1) if gains else None,
             "gain_season_mid": round(float(np.median(gains)), 1) if gains else None,
             "replications": len(gains),
+            # The single best QB is a DIFFERENT and much noisier question than a
+            # top-6 QB: it rides one player's passing-TD total, so it swings hard
+            # between seasons. Reported as its own range rather than folded in.
+            "qb1_gain_lo": round(min(gains1), 1) if gains1 else None,
+            "qb1_gain_hi": round(max(gains1), 1) if gains1 else None,
+            "qb1_gain_mid": round(float(np.median(gains1)), 1) if gains1 else None,
         }
     else:
         THESIS = {}
@@ -415,8 +457,7 @@ def main():
     return agg, THESIS, REPL_RANK, repl_pts
 
 
-if __name__ == "__main__":
-    main()
+
 
 
 # ============================================================================
@@ -517,8 +558,16 @@ def build_edge_table(agg, thesis, repl_rank, repl_pts, board_path="ranks.json"):
         if r.games <= 10:
             bits.append(f"only {r.games} games in 2025")
         if r.role_risk:
-            bits = [f"only {r.games} g / {r.snap_pct*100:.0f}% snaps in 2025 — "
-                    f"2025 describes a role he no longer has, not his 2026 value"]
+            # role_risk is an OR of two independent tests; say which one fired,
+            # so a 17-game rotational player is not reported as "only 17 games".
+            if r.games < 9 and r.snap_pct < 0.55:
+                what = f"only {r.games} games and {r.snap_pct*100:.0f}% of snaps"
+            elif r.games < 9:
+                what = f"only {r.games} games"
+            else:
+                what = f"just {r.snap_pct*100:.0f}% of snaps over {r.games} games"
+            bits = [f"{what} in 2025 — that describes a role he no longer has, "
+                    f"not his 2026 value"]
         if not bits:
             bits.append(f"{r.proj_pg:.1f} proj pts/g vs {r.pos} replacement")
         return "; ".join(bits[:3])
@@ -559,3 +608,9 @@ def main_with_edge():
         json.dump(payload, f, separators=(",", ":"))
     print(f"  edge.json  {len(df)} matched, {len(unmatched)} unmatched (no 2025 NFL data)")
     return df, unmatched, thesis
+
+
+if __name__ == "__main__":
+    # main() alone writes only the data/ layer; edge.json comes from
+    # main_with_edge(). Running this file directly must produce both.
+    main_with_edge()
