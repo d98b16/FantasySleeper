@@ -1,0 +1,8 @@
+test,n,raw,effect,se,p,passes,survives_bonferroni
+1. TD luck regresses (fade),293,-5.0522,0.2051,0.8277,0.8043,False,False
+2. TD drought rebounds (buy),222,1.4192,0.9077,0.9049,0.3159,False,False
+3. Opportunity without production (buy),160,3.5425,0.4654,1.1020,0.6728,False,False
+4. Efficiency spike regresses (fade),67,-6.4103,0.8927,1.6455,0.5875,False,False
+5. Missed most of last year (fade),208,2.0645,-3.0749,0.9397,0.0011,True,True
+6. Age cliff at RB (fade),111,1.5179,-2.7651,1.3081,0.0347,False,False
+7. Young ascending role (buy),454,-1.0352,2.2438,0.7212,0.0019,False,True
