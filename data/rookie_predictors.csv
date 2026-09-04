@@ -1,0 +1,26 @@
+trait,n,rho,p,r2,verdict
+draft pick (overall),825,0.54207,0.00000,0.29384,PREDICTS
+draft round,825,0.52426,0.00000,0.27485,PREDICTS
+targets vacated by his new team,612,0.09978,0.01353,0.00996,weak
+carries vacated by his new team,612,0.09991,0.01340,0.00998,weak
+fantasy pts vacated by his new team,612,0.10489,0.00941,0.01100,weak
+40 time (faster = better),615,0.02763,0.49400,0.00076,no signal
+draft pick (overall),92,0.53334,0.00000,0.28445,PREDICTS
+draft round,92,0.52361,0.00000,0.27417,PREDICTS
+fantasy pts vacated by his new team,68,0.08077,0.51260,0.00652,no signal
+40 time (faster = better),55,0.15939,0.24508,0.02541,no signal
+draft pick (overall),243,0.56702,0.00000,0.32151,PREDICTS
+draft round,243,0.55590,0.00000,0.30902,PREDICTS
+carries vacated by his new team,183,0.14935,0.04360,0.02231,weak
+fantasy pts vacated by his new team,183,0.01932,0.79515,0.00037,no signal
+40 time (faster = better),184,0.03111,0.67503,0.00097,no signal
+draft pick (overall),338,0.56214,0.00000,0.31600,PREDICTS
+draft round,338,0.54804,0.00000,0.30034,PREDICTS
+targets vacated by his new team,247,0.18319,0.00386,0.03356,PREDICTS
+fantasy pts vacated by his new team,247,0.03359,0.59937,0.00113,no signal
+40 time (faster = better),264,0.08403,0.17344,0.00706,no signal
+draft pick (overall),152,0.45101,0.00000,0.20341,PREDICTS
+draft round,152,0.42241,0.00000,0.17843,PREDICTS
+targets vacated by his new team,114,0.10204,0.28001,0.01041,no signal
+fantasy pts vacated by his new team,114,0.12953,0.16956,0.01678,no signal
+40 time (faster = better),112,0.25145,0.00749,0.06323,PREDICTS
