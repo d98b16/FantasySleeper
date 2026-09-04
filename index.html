@@ -99,6 +99,18 @@ tbody tr:hover{background:rgba(255,255,255,.035)}
 .alert.bad{background:rgba(248,81,73,.1);border-color:var(--bad);color:#ffb3ae}
 .alert.good{background:rgba(63,185,80,.1);border-color:var(--good);color:#8ee79c}
 
+/* ---------- lasts / runs ---------- */
+.lasts{font-size:11px;font-weight:800;font-variant-numeric:tabular-nums}
+.lasts.safe{color:var(--good)} .lasts.mid{color:var(--warn)} .lasts.gone{color:var(--bad)}
+.lasts.na{color:var(--faint);font-weight:600}
+.lasts .est{opacity:.55;font-weight:600}
+.runbar{display:flex;gap:6px;flex-wrap:wrap;padding:7px 12px;border-bottom:1px solid var(--line);background:rgba(248,81,73,.06)}
+.runchip{font-size:10.5px;padding:2px 7px;border-radius:99px;border:1px solid var(--line);background:var(--panel2)}
+.runchip b{font-weight:800}
+.runchip.RB b{color:var(--rb)} .runchip.WR b{color:var(--wr)}
+.runchip.QB b{color:var(--qb)} .runchip.TE b{color:var(--te)} .runchip.DST b{color:var(--dst)}
+.runchip .heat{color:var(--faint)}
+.card > table, .tablewrap{display:block;overflow-x:auto}
 /* ---------- edge ---------- */
 #thesis{padding:9px 12px;font-size:11px;line-height:1.5;color:var(--dim);border-bottom:1px solid var(--line);background:rgba(227,179,65,.06)}
 #thesis b{color:var(--gold)}
@@ -212,8 +224,9 @@ footer{margin-top:10px;font-size:10.5px;color:var(--faint);text-align:center;lin
   <div>
     <div class="card">
       <h2>Best available <span class="sub" id="baSub">by our board + your needs</span></h2>
+      <div id="runbar"></div>
       <table>
-        <thead><tr><th style="width:34px">#</th><th>Player</th><th style="width:44px">Pos</th><th style="width:38px">Bye</th><th style="width:46px" class="num">ADP</th><th style="width:46px" class="num">Edge</th><th style="width:40px">Tier</th></tr></thead>
+        <thead><tr><th style="width:34px">#</th><th>Player</th><th style="width:44px">Pos</th><th style="width:38px">Bye</th><th style="width:46px" class="num">ADP</th><th style="width:46px" class="num">Edge</th><th style="width:56px" class="num" id="lastsTh">Lasts</th><th style="width:40px">Tier</th></tr></thead>
         <tbody id="baBody"></tbody>
       </table>
     </div>
@@ -286,6 +299,7 @@ const WEIGHTS = {
   flex:       9,   // flex-eligible and flex still open
   scarcity:  22,   // <=2 left in this player's tier at this position
   scarcity2: 10,   // <=4 left
+  scarcityNow:18,  // unlikely to survive to your next pick, and you need him
   value:      1.6, // per pick they've fallen past their ADP
   valueCap:  30,   // cap on the falling-value bonus
   byeStack:  14,   // penalty per extra starter already on that bye
@@ -372,6 +386,64 @@ function renderEdge(){
     .map(p=>row(p,'dn')).join('') || '<div class="empty">No confident fades.</div>';
 }
 
+/* ---- 2c. WILL HE LAST? --------------------------------------------------
+   The question behind every pick is "can I wait on him until my next turn?"
+   Model his draft position as normal around his ADP, then condition on the fact
+   that he is demonstrably still on the board right now:
+
+       P(there at my next pick | there now) = (1 - F(next)) / (1 - F(now))
+
+   The spread is ASSUMED, not measured -- real ADP feeds publish a standard
+   deviation and ours does not, so sd is fitted to the shape published feeds show
+   (about 0.28 x ADP, floored so early picks are not absurdly certain). Past ~#60 the
+   board has no live ADP at all and falls back to board rank with a much wider
+   spread; those are flagged as estimates in the UI. Treat these as "safe / risky
+   / gone", not as three significant figures. */
+
+function erf(x){                      // Abramowitz & Stegun 7.1.26
+  const s = x < 0 ? -1 : 1; x = Math.abs(x);
+  const t = 1/(1 + 0.3275911*x);
+  const y = 1 - ((((1.061405429*t - 1.453152027)*t + 1.421413741)*t
+                  - 0.284496736)*t + 0.254829592)*t*Math.exp(-x*x);
+  return s*y;
+}
+const normCdf = z => 0.5*(1 + erf(z/Math.SQRT2));
+
+function lastsUntil(p, curPick, nextPick){
+  if (nextPick == null || nextPick <= curPick) return null;
+  const live = p.adp != null;
+  const mu = live ? p.adp : p.rank;
+  // Published half-PPR ADP standard deviations run roughly a quarter to a third
+  // of ADP (about 4-5 at ADP 10, 9-11 at 30, 14-18 at 60, 20-25 at 100), so 0.28
+  // fits the shape across the range. Rank-based fallbacks get a wider 0.45.
+  const sd = Math.max(2.0, (live ? 0.28 : 0.45) * mu);
+  const avail = k => 1 - normCdf((k - mu)/sd);
+  const now = avail(curPick);
+  if (now <= 1e-6) return {pct: 0, est: !live};
+  return {pct: Math.max(0, Math.min(1, avail(nextPick)/now)), est: !live};
+}
+
+/* ---- 2d. POSITION RUNS --------------------------------------------------
+   A run is not "several RBs went" -- in a 12-team draft several RBs always go.
+   It is a position going materially faster than its own share of what is left
+   on the board, which is what actually drains a tier before your next turn. */
+const RUN_WINDOW = 10;
+function detectRuns(picks, avail){
+  const recent = picks.slice(-RUN_WINDOW);
+  if (recent.length < 6) return [];
+  const out = [];
+  for (const pos of ['RB','WR','TE','QB','DST']){
+    const hits = recent.filter(p => p.pos === pos).length;
+    const share = hits / recent.length;
+    const poolShare = avail.length ? avail.filter(p => p.pos === pos).length / avail.length : 0;
+    // needs to be both frequent in absolute terms and hot relative to supply
+    if (hits >= 4 && share >= Math.max(0.4, poolShare * 1.8))
+      out.push({pos, hits, window: recent.length, share, poolShare,
+                heat: poolShare > 0 ? share / poolShare : Infinity});
+  }
+  return out.sort((a,b) => b.heat - a.heat);
+}
+
 /* ---- 2b. ROSTER SLOTS -------------------------------------------------
    Sleeper roster_positions, verified live:
    QB RB RB WR WR TE FLEX DEF BN BN BN BN  (12 slots, 12 rounds) + 2 IR.
@@ -431,6 +503,11 @@ const pickOfRound = rd => (rd % 2)
   : CONFIG.teams*rd - CONFIG.mySlot + 1;
 const myPicks = () => Array.from({length:CONFIG.rounds},(_,i)=>pickOfRound(i+1));
 const nextMyPick = cur => myPicks().find(p => p >= cur) ?? null;
+/* The pick AFTER the one you are about to make. On a back-to-back turn (this
+   league: 22 & 27, 46 & 51, 70 & 75 ...) the real question while you are on the
+   clock is not "will he last to 22" -- you are AT 22 -- but "if I take the other
+   guy now, does this one come back to me at 27?" That is the pick to measure. */
+const pickAfter = cur => myPicks().find(p => p > cur) ?? null;
 
 /* ---- 5. DERIVED VIEW --------------------------------------------------- */
 
@@ -480,6 +557,8 @@ function derive(){
      equal, every remaining pick MUST fill a starter and there is no room left for
      an upside swing. This is what stops the board recommending a backup QB at the
      final pick while the DEF slot sits empty. */
+  /* If you are on the clock, measure survival to your NEXT pick, not this one. */
+  const oddsTarget   = (myNext === curPick) ? pickAfter(curPick) : myNext;
   const myRemaining  = myPicks().filter(p => p >= curPick).length;
   const requiredLeft = Object.values(need).reduce((a,b)=>a+b,0) + flexOpen;
   const mustFill     = myRemaining <= requiredLeft;
@@ -532,12 +611,19 @@ function derive(){
       s += e.edge * WEIGHTS.edge * (live ? 1 : 0.25);
       if (Math.abs(e.edge) >= 20) why.push(`${e.edge > 0 ? '+' : ''}${e.edge} vs ADP (2025 model)`);
     }
-    return {...p, score:s, why, edge:e};
+    const lasts = lastsUntil(p, curPick, oddsTarget);
+    if (lasts && lasts.pct < 0.35 && (need[p.pos] > 0 ||
+        (flexOpen > 0 && ['RB','WR','TE'].includes(p.pos)))){
+      s += WEIGHTS.scarcityNow * (1 - lasts.pct);
+      why.push(`${Math.round(lasts.pct*100)}% to last to #${oddsTarget}`);
+    }
+    return {...p, score:s, why, edge:e, lasts};
   }).sort((a,b) => b.score - a.score);
 
+  const runs = detectRuns(S.picks, avail);
   return {curPick, rd, onClock, mine, myNext, until: myNext ? myNext - curPick : null,
           need, have, flexOpen, byes, avail, scored, supply, starters,
-          myRemaining, requiredLeft, mustFill, canWaitOnDef};
+          myRemaining, requiredLeft, mustFill, canWaitOnDef, runs, oddsTarget};
 }
 
 /* ---- 6. SLEEPER API ---------------------------------------------------- */
@@ -754,9 +840,18 @@ function render(animate){
         ? `<span class="edelta ${!p.edge.ok?'na':p.edge.edge>0?'up':'dn'}" title="${esc(p.edge.why)}">${
             p.edge.ok ? (p.edge.edge>0?'+':'')+p.edge.edge : '·'}</span>`
         : '<span class="edelta na">—</span>'}</td>
+      <td class="mono num">${p.lasts
+        ? `<span class="lasts ${p.lasts.pct>=.7?'safe':p.lasts.pct>=.35?'mid':'gone'}" title="${
+            p.lasts.est?'estimated from board rank — no live ADP past ~#60':'from ADP'}">${
+            Math.round(p.lasts.pct*100)}%${p.lasts.est?'<span class="est">~</span>':''}</span>`
+        : '<span class="lasts na">—</span>'}</td>
       <td><span class="tierchip">T${p.tier}</span></td>
-    </tr>`).join('') || '<tr><td colspan="7" class="empty">Board exhausted — all ${RANKS.length} ranked players are gone.<br>Rounds 11-12 are past our rankings: take a DEFENSE in the final round, and for the other pick grab the best upside left in Sleeper\'s own list (a backup RB attached to a starter is the best swing).</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="8" class="empty">Board exhausted — all ${RANKS.length} ranked players are gone.<br>Rounds 11-12 are past our rankings: take a DEFENSE in the final round, and for the other pick grab the best upside left in Sleeper\'s own list (a backup RB attached to a starter is the best swing).</td></tr>';
   $('baSub').textContent = `${v.avail.length} of ${RANKS.length} left`;
+  $('lastsTh').textContent = v.oddsTarget ? `to #${v.oddsTarget}` : 'Lasts';
+  $('lastsTh').title = v.oddsTarget
+    ? `Chance he is still on the board at your pick #${v.oddsTarget}`
+    : 'No later pick of yours to measure against';
 
   // needs
   $('needs').innerHTML = ['QB','RB','WR','TE','DST'].map(pos => {
@@ -786,10 +881,25 @@ function render(animate){
       al.push([starving?'bad':'warn', `Only <b>${s.elite}</b> top-tier (${s.eliteTiers}) ${pos} left — run risk${starving?', and it is a need':''}.`]);
     }
   }
+  for (const r of v.runs.slice(0,2)){
+    const need = v.need[r.pos] > 0 || (v.flexOpen > 0 && ['RB','WR','TE'].includes(r.pos));
+    al.push([need ? 'bad' : 'warn',
+      `<b>${r.pos} run</b> — ${r.hits} of the last ${r.window} picks` +
+      (need ? `, and you still need ${r.pos}. Waiting until #${v.oddsTarget ?? v.myNext} costs you a tier.`
+            : `. You are set at ${r.pos} — let it pass.`)]);
+  }
   const stacked = Object.entries(v.byes).filter(([,c]) => c >= 3);
   for (const [wk,c] of stacked) al.push(['bad', `<b>${c}</b> of your starters share bye week <b>${wk}</b>.`]);
   if (v.starters === 0 && v.mine.length) al.push(['good','Starting lineup is full — swing for upside.']);
   $('alerts').innerHTML = al.slice(0,4).map(([k,t]) => `<div class="alert ${k}">${t}</div>`).join('');
+
+  // run bar — position velocity over the last 10 picks
+  $('runbar').innerHTML = v.runs.length
+    ? '<div class="runbar">' + v.runs.map(r =>
+        `<span class="runchip ${r.pos}"><b>${r.pos} run</b> ${r.hits}/${r.window}` +
+        ` <span class="heat">${r.heat===Infinity?'∞':r.heat.toFixed(1)}× supply</span></span>`).join('') +
+      '</div>'
+    : '';
 
   // supply bars
   $('supply').innerHTML = ['RB','WR','QB','TE'].map(pos => {
@@ -907,7 +1017,7 @@ load();
 renderEdge();
 setStatus('idle', 'not connected — enter a league ID, or run the demo');
 render(false);
-window.DRAFT = {S, CONFIG, WEIGHTS, derive, render, startDemo, connect, assignSlots, SLOTS, norm, EDGE, edgeBy, renderEdge};  // console access
+window.DRAFT = {S, CONFIG, WEIGHTS, derive, render, startDemo, connect, assignSlots, SLOTS, norm, EDGE, edgeBy, renderEdge, lastsUntil, detectRuns, normCdf};  // console access
 
 </script>
 </body>

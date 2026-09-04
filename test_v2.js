@@ -136,6 +136,81 @@ const T = (name, val) => { checks[name] = val; };
   });
   T('bye stack counts the 3 starters, not all 6 picks', bye.counted === 3);
 
+  // ---------- 6. survival odds ----------
+  const odds = await page.evaluate(() => {
+    const { lastsUntil, normCdf } = window.DRAFT;
+    const R = JSON.parse(document.getElementById('ranksData').textContent).ranks;
+    const withAdp = R.filter(x => x.adp != null);
+    const t = R.find(x => x.adp && x.adp > 30);
+    return {
+      cdf: [normCdf(-1.96), normCdf(0), normCdf(1.96)],
+      nullPast: [lastsUntil(t, 22, 22), lastsUntil(t, 22, 10), lastsUntil(t, 22, null)],
+      bounded: withAdp.every(x => { const l = lastsUntil(x, 3, 22); return l.pct >= 0 && l.pct <= 1; }),
+      // strictly decreasing as the next pick gets further away
+      mono: [27, 46, 70, 94].map(k => lastsUntil(t, 22, k).pct),
+      // a player already well past his ADP is gone; one far below it is safe
+      gone: lastsUntil(R.find(x => x.adp && x.adp < 5), 3, 22).pct,
+      safe: lastsUntil(R.filter(x => x.adp).slice(-1)[0], 3, 22).pct,
+      // no live ADP past ~#60 -> flagged as an estimate
+      est: lastsUntil(R.find(x => x.adp == null), 70, 94).est,
+      liveNotEst: lastsUntil(R.find(x => x.adp != null), 3, 22).est,
+    };
+  });
+  T('normCdf accurate to 1e-4',
+    Math.abs(odds.cdf[0] - 0.0250) < 1e-4 && Math.abs(odds.cdf[1] - 0.5) < 1e-9 &&
+    Math.abs(odds.cdf[2] - 0.9750) < 1e-4);
+  T('no odds when next pick is not ahead', odds.nullPast.every(x => x === null));
+  T('odds bounded to [0,1]', odds.bounded);
+  T('odds fall monotonically with distance',
+    odds.mono.every((v, i) => i === 0 || v <= odds.mono[i - 1]));
+  T('player far past ADP reads as gone', odds.gone < 0.02);
+  T('player far below ADP reads as safe', odds.safe > 0.95);
+  T('rank fallback flagged as estimate, live ADP is not',
+    odds.est === true && odds.liveNotEst === false);
+
+  // ---------- 7. positional run detection ----------
+  const runs = await page.evaluate(() => {
+    const { detectRuns } = window.DRAFT;
+    const R = JSON.parse(document.getElementById('ranksData').textContent).ranks;
+    const pool = R.map(x => ({ pos: x.pos }));
+    const mk = (pos, i) => ({ pickNo: i, pos, name: 'p' + i });
+    const seq = a => a.map((p, i) => mk(p, i));
+    return {
+      hot: detectRuns(seq(['RB','RB','RB','RB','RB','RB','WR','WR','WR','WR']), pool)
+             .map(r => r.pos + ':' + r.hits),
+      balanced: detectRuns(seq(['RB','WR','WR','TE','RB','WR','QB','WR','RB','WR']), pool).length,
+      tooShort: detectRuns(seq(['RB','RB','RB']), pool).length,
+      // only the last 10 count, so an old run must age out
+      aged: detectRuns(seq(['RB','RB','RB','RB','RB','RB','WR','TE','WR','QB','WR','TE','WR','QB','WR','TE']), pool).length,
+      windowCapped: detectRuns(seq(Array(40).fill('RB')), pool)[0].window,
+    };
+  });
+  // on a back-to-back turn the odds must measure the FOLLOWING pick, not this one
+  const target = await page.evaluate(() => {
+    const { S, derive } = window.DRAFT;
+    S.picks = []; S.taken = new Set();
+    const at = n => { S.picks = Array.from({ length: n - 1 }, (_, i) =>
+      ({ pickNo: i + 1, round: Math.ceil((i + 1) / 12), slot: 1,
+         name: 'x' + i, pos: 'WR', team: 'XX', ranked: null }));
+      const v = derive(); return { cur: v.curPick, next: v.myNext, target: v.oddsTarget }; };
+    const out = { onClock22: at(22), between: at(23), onClock27: at(27), last: at(142) };
+    S.picks = []; S.taken = new Set();
+    return out;
+  });
+  T('on the clock at #22 -> odds measured to #27',
+    target.onClock22.next === 22 && target.onClock22.target === 27);
+  T('between picks -> odds measured to the next pick',
+    target.between.next === 27 && target.between.target === 27);
+  T('on the clock at #27 -> odds measured to #46',
+    target.onClock27.next === 27 && target.onClock27.target === 46);
+  T('no target at the final pick', target.last.target === null);
+
+  T('run detected when a position goes hot', runs.hot.includes('RB:6'));
+  T('no run on a balanced window', runs.balanced === 0);
+  T('no run before the window fills', runs.tooShort === 0);
+  T('an old run ages out of the window', runs.aged === 0);
+  T('window capped at 10 picks', runs.windowCapped === 10);
+
   T('no JS errors', errors.length === 0);
 
   let fail = 0;
