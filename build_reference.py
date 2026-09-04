@@ -21,6 +21,7 @@ import pandas as pd
 
 warnings.filterwarnings("ignore")
 import league
+from reference_page import render
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 RAW  = os.path.join(HERE, "data", "raw")
@@ -47,6 +48,26 @@ TIERS = [
     (64, 105,"BENCH FLYER",       0.107,  5.1, "round 3 — 11% hit rate"),
     (105, 999,"DO NOT ROSTER",    0.051,  3.4, "round 4+ — 5% hit rate"),
 ]
+
+
+def clean(o):
+    """NaN and Infinity are not JSON. Python's json.dumps emits them bare, which
+    Python itself will read back but JSON.parse in a browser rejects outright --
+    the page silently had no data at all until this was found. Null them."""
+    if isinstance(o, dict):
+        return {k: clean(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [clean(v) for v in o]
+    if isinstance(o, float) and (o != o or o in (float("inf"), float("-inf"))):
+        return None
+    if isinstance(o, (np.integer,)):
+        return int(o)
+    if isinstance(o, (np.floating,)):
+        f = float(o)
+        return None if f != f else f
+    if isinstance(o, (np.bool_,)):
+        return bool(o)
+    return o
 
 
 def tier_for(pick):
@@ -167,10 +188,76 @@ def handcuffs(board, p25):
     return pairs
 
 
+def market_board():
+    """Live 2026 half-PPR ADP. Joined on the normalised name, and on the team
+    code for defenses, whose names differ on the two boards ("HOU D/ST" vs
+    "Houston Defense")."""
+    p = os.path.join(OUT, "adp_2026.json")
+    if not os.path.exists(p):
+        return {}, {}
+    m = json.load(open(p))["players"]
+    by_name, by_team_dst = {}, {}
+    for x in m:
+        rec = dict(adp=x["adp"], mkt=x["mkt_rank"], pos=x["pos"],
+                   team=x.get("team"), name=x["name"], sd=x.get("sd"))
+        by_name[league.norm(x["name"])] = rec
+        if x["pos"] == "DST" and x.get("team"):
+            by_team_dst[str(x["team"]).upper()] = rec
+    return by_name, by_team_dst
+
+
+def universe(board, dp, mkt_name, mkt_dst):
+    """Every player either board or market knows about. Nobody is dropped for
+    existing on one side only -- those are exactly the players worth seeing."""
+    rows, seen = [], set()
+    rook = {}
+    for _, r in dp.iterrows():
+        rook[r["key"]] = dict(pick=int(r["pick"]), rd=int(r["round"]),
+                              college=r["college"], **tier_for(int(r["pick"])))
+
+    for _, b in board.iterrows():
+        k = b["key"]
+        seen.add(k)
+        m = mkt_name.get(k) or (mkt_dst.get(str(b["team"]).upper())
+                                if b["pos"] == "DST" else None)
+        rk = rook.get(k)
+        rows.append(dict(n=b["name"], p=b["pos"], t=b["team"],
+                         our=int(b["rank"]), ti=int(b["tier"]) if pd.notna(b["tier"]) else None,
+                         by=int(b["bye"]) if pd.notna(b["bye"]) else None,
+                         adp=(m or {}).get("adp"), mkt=(m or {}).get("mkt"),
+                         cl=(rk or {}).get("college"), pk=(rk or {}).get("pick"),
+                         rt=(rk or {}).get("tier"), nt=b.get("notes") or ""))
+    for k, m in mkt_name.items():
+        if k in seen or m["pos"] in ("K",):
+            continue
+        rk = rook.get(k)
+        rows.append(dict(n=m["name"], p=m["pos"], t=m.get("team") or "",
+                         our=None, ti=None, by=None, adp=m["adp"], mkt=m["mkt"],
+                         cl=(rk or {}).get("college"), pk=(rk or {}).get("pick"),
+                         rt=(rk or {}).get("tier"), nt=""))
+    for k, rk in rook.items():
+        if k in seen or k in mkt_name:
+            continue
+        row = dp[dp.key == k].iloc[0]
+        rows.append(dict(n=row["pfr_player_name"], p=row["position"], t=row["team"],
+                         our=None, ti=None, by=None, adp=None, mkt=None,
+                         cl=rk["college"], pk=rk["pick"], rt=rk["tier"], nt=""))
+
+    # delta = market rank - our rank. Positive: we rank him better than the
+    # market does. Both sides must exist or it is meaningless.
+    for r in rows:
+        r["d"] = (r["mkt"] - r["our"]) if (r["mkt"] and r["our"]) else None
+        r["dnd"] = league.norm(r["n"]) in DND_KEYS
+    rows.sort(key=lambda r: (r["our"] is None, r["our"] or 9999,
+                             r["mkt"] is None, r["mkt"] or 9999))
+    return rows
+
+
 def main():
     board, dp, p25 = load()
+    mkt_name, mkt_dst = market_board()
     rk, offrk = rookies(board, dp)
-    # If a top-30 back is unavailable, the man behind him is the story.
+
     inherits = []
     for d in DO_NOT_DRAFT:
         if d["pos"] != "RB":
@@ -183,8 +270,7 @@ def main():
         m = mates.iloc[0]
         ob = board[board.key == m["key"]]
         inherits.append(dict(out=d["name"], team=d["team"],
-                             heir=m["player_display_name"],
-                             carries=int(m.carries),
+                             heir=m["player_display_name"], carries=int(m.carries),
                              board_rank=int(ob["rank"].iloc[0]) if len(ob) else None))
 
     payload = dict(
@@ -201,201 +287,23 @@ def main():
                      "CFB source is cached, so it is untested here, not disproven"),
         rookies=rk, off_board_rookies=offrk,
         byes=byes(board), handcuffs=handcuffs(board, p25),
+        players=universe(board, dp, mkt_name, mkt_dst),
+        market_source=(json.load(open(os.path.join(OUT, "adp_2026.json")))["source"]
+                       if os.path.exists(os.path.join(OUT, "adp_2026.json")) else None),
     )
+    payload = clean(payload)
     with open(os.path.join(OUT, "reference.json"), "w") as f:
-        json.dump(payload, f, separators=(",", ":"))
+        json.dump(payload, f, separators=(",", ":"), allow_nan=False)
     html = render(payload)
     with open(os.path.join(HERE, "reference.html"), "w") as f:
         f.write(html)
-    print(f"data/reference.json  {len(rk)} board rookies, {len(offrk)} off-board, "
-          f"{len(payload['handcuffs'])} handcuff pairs, {len(payload['byes'])} bye weeks")
+    nb = sum(1 for r in payload["players"] if r["our"] is None)
+    nm = sum(1 for r in payload["players"] if r["mkt"] is None)
+    print(f"data/reference.json  {len(payload['players'])} players "
+          f"({nb} not on board, {nm} not on market), {len(rk)} board rookies, "
+          f"{len(payload['handcuffs'])} handcuff pairs")
     print(f"reference.html       {len(html)/1024:.0f} KB standalone")
     return payload
-
-
-
-
-# ============================================================================
-# THE PAGE
-# ============================================================================
-CSS = """
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#0d1117;--panel:#161b22;--panel2:#1c2430;--line:#2d3947;--tx:#e6edf3;
---dim:#93a1b0;--faint:#6b7a8a;--rb:#3fb950;--wr:#58a6ff;--qb:#f0883e;--te:#bc8cff;
---bad:#f85149;--warn:#e3b341;--good:#3fb950}
-body{background:var(--bg);color:var(--tx);font:16px/1.45 ui-sans-serif,system-ui,
--apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:14px;max-width:1100px;margin:0 auto}
-h1{font-size:19px;letter-spacing:-.02em}
-h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);
-margin:26px 0 9px;font-weight:800;border-bottom:1px solid var(--line);padding-bottom:6px}
-.sub{font-size:12px;color:var(--faint);font-weight:500;letter-spacing:0;text-transform:none}
-header{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
-.meta{font-size:11.5px;color:var(--faint);margin-bottom:2px}
-/* --- do not draft --- */
-.dnd{background:rgba(248,81,73,.16);border:2px solid var(--bad);border-radius:10px;
-padding:14px 16px;margin:14px 0 4px}
-.dnd .hdr{font-size:12px;font-weight:900;letter-spacing:.14em;color:var(--bad);margin-bottom:8px}
-.dnd .nm{font-size:30px;font-weight:900;line-height:1.1;letter-spacing:-.02em}
-.dnd .why{font-size:15px;color:#ffb3ae;margin-top:5px;font-weight:600}
-/* --- tiers --- */
-.tier{margin-bottom:12px;border-left:5px solid var(--line);padding-left:12px}
-.tier.t0{border-left-color:var(--good)} .tier.t1{border-left-color:var(--warn)}
-.tier.t2{border-left-color:#c9822f} .tier.t3{border-left-color:var(--faint)}
-.tier .tn{font-size:14px;font-weight:900;letter-spacing:.05em}
-.tier.t0 .tn{color:var(--good)} .tier.t1 .tn{color:var(--warn)}
-.tier.t2 .tn{color:#c9822f} .tier.t3 .tn{color:var(--faint)}
-.tier .tm{font-size:11.5px;color:var(--faint);margin-bottom:5px}
-.plist{display:flex;flex-wrap:wrap;gap:7px}
-.pl{background:var(--panel);border:1px solid var(--line);border-radius:7px;
-padding:7px 11px;min-width:0}
-.pl .n{font-size:17px;font-weight:800;line-height:1.15}
-.pl .d{font-size:11.5px;color:var(--dim);margin-top:1px}
-.pos{font-size:10px;font-weight:900;padding:1px 5px;border-radius:4px;margin-right:4px}
-.pos.RB{color:var(--rb);background:rgba(63,185,80,.15)}
-.pos.WR{color:var(--wr);background:rgba(88,166,255,.15)}
-.pos.QB{color:var(--qb);background:rgba(240,136,62,.15)}
-.pos.TE{color:var(--te);background:rgba(188,140,255,.15)}
-/* --- bye grid --- */
-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);
-text-align:left;padding:5px 7px;font-weight:800}
-td{padding:7px;border-top:1px solid var(--line);font-size:14px}
-tr.hot td{background:rgba(248,81,73,.10)}
-tr.warm td{background:rgba(227,179,65,.08)}
-.wk{font-size:21px;font-weight:900}
-.cnt{font-size:17px;font-weight:800}
-.pc{font-size:12px;color:var(--dim)}
-.nm{font-size:11.5px;color:var(--faint);line-height:1.35}
-/* --- handcuffs --- */
-.hc{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:7px}
-.hcp{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 11px}
-.hcp .a{font-size:15px;font-weight:800}
-.hcp .b{font-size:14px;font-weight:700;color:var(--good);margin-top:2px}
-.hcp .c{font-size:11px;color:var(--faint);margin-top:2px}
-.note{font-size:12px;color:var(--faint);line-height:1.55;margin-top:8px;
-background:var(--panel);border-left:3px solid var(--line);padding:9px 12px;border-radius:0 6px 6px 0}
-.note b{color:var(--dim)}
-footer{margin-top:30px;font-size:11px;color:var(--faint);text-align:center;line-height:1.7;
-border-top:1px solid var(--line);padding-top:12px}
-@media(max-width:560px){
-  body{padding:10px} .pl .n{font-size:16px} .dnd .nm{font-size:25px}
-  .hc{grid-template-columns:1fr} td{font-size:13px} .wk{font-size:19px}
-}
-"""
-
-
-def esc(s):
-    return (str(s).replace("&", "&amp;").replace("<", "&lt;")
-            .replace(">", "&gt;").replace('"', "&quot;"))
-
-
-def render(p):
-    L = []
-    A = L.append
-    A(f"<!DOCTYPE html><html lang=en><head><meta charset=utf-8>")
-    A('<meta name="viewport" content="width=device-width,initial-scale=1">')
-    A("<title>Draft Reference</title><style>" + CSS + "</style></head><body>")
-    A('<header><h1>Draft Reference</h1>'
-      f'<span class=sub>{esc(p["generated_for"])}</span></header>')
-    A('<div class=meta>Second-tab companion. Static — nothing here updates during '
-      'the draft. The live board is the other tab.</div>')
-
-    # 1 --- do not draft
-    for d in p["do_not_draft"]:
-        A('<div class=dnd><div class=hdr>DO NOT DRAFT</div>'
-          f'<div class=nm>{esc(d["name"])} '
-          f'<span class="pos {esc(d["pos"])}">{esc(d["pos"])}</span> '
-          f'<span style="font-size:16px;color:var(--faint)">{esc(d["team"])} · '
-          f'board #{d["board_rank"]}</span></div>'
-          f'<div class=why>{esc(d["reason"])}</div>')
-        for h in p.get("inherits", []):
-            if h["out"] != d["name"]:
-                continue
-            br = f'board #{h["board_rank"]}' if h["board_rank"] else "not on the board"
-            A(f'<div class=why style="color:var(--warn);margin-top:9px">'
-              f'&rarr; {esc(h["heir"])} inherits the {esc(h["team"])} backfield '
-              f'({h["carries"]} carries in 2025, {esc(br)}) — that is the pick '
-              f'this frees up.</div>')
-        A("</div>")
-
-    # 2 --- rookies
-    m = p["rookie_method"]
-    A('<h2>Rookies <span class=sub>tiered by the one trait that predicts</span></h2>')
-    order = ["REAL WEEK-1 ROLE", "STARTER-ADJACENT", "DART THROW", "BENCH FLYER"]
-    for i, tname in enumerate(order):
-        grp = [r for r in p["rookies"] if r["tier"] == tname]
-        if not grp:
-            continue
-        note = grp[0]["note"]
-        A(f'<div class="tier t{min(i,3)}"><div class=tn>{esc(tname)}</div>'
-          f'<div class=tm>{esc(note)} · historically {grp[0]["mean_pg"]:.1f} pts/g</div>'
-          '<div class=plist>')
-        for r in grp:
-            A(f'<div class=pl><div class=n><span class="pos {esc(r["pos"])}">'
-              f'{esc(r["pos"])}</span>{esc(r["name"])}</div>'
-              f'<div class=d>{esc(r["team"])} · board #{r["board_rank"]} · '
-              f'NFL pick {r["pick"]} · {esc(r["college"])}</div></div>')
-        A("</div></div>")
-    A(f'<div class=note><b>Method.</b> Tested on {m["n"]} rookie seasons, '
-      f'{esc(m["span"])}. <b>Predicts:</b> {esc(m["predicts"])}. '
-      f'<b>Weak:</b> {esc(m["weak"])}. <b>No signal:</b> {esc(m["no_signal"])}. '
-      f'<b>Untested:</b> {esc(m["untested"])}. Tiers are draft capital and nothing '
-      'else, because nothing else earned a place in them.</div>')
-
-    if p["off_board_rookies"]:
-        A('<h2>Round-1 and 2 rookies your board does NOT list '
-          '<span class=sub>the board stops at 129 players</span></h2><div class=plist>')
-        for r in p["off_board_rookies"]:
-            A(f'<div class=pl><div class=n><span class="pos {esc(r["pos"])}">'
-              f'{esc(r["pos"])}</span>{esc(r["name"])}</div>'
-              f'<div class=d>{esc(r["team"])} · NFL pick {r["pick"]} · '
-              f'{int(r["hit"]*100)}% hit rate · {esc(r["college"])}</div></div>')
-        A('</div><div class=note>These are not on the 129-player board at all. '
-          'A round-1 rookie hits about 43% of the time; that is a better late-round '
-          'swing than most names left in round 12. Check they are actually in '
-          "Sleeper's pool before you plan on one.</div>")
-
-    # 3 --- byes
-    A('<h2>Bye weeks <span class=sub>where the board is thin — '
-      'you have 4 bench spots</span></h2>')
-    A('<table><tr><th>Wk</th><th>Top-60 out</th><th>By position</th>'
-      '<th>Who</th></tr>')
-    for b in p["byes"]:
-        cls = "hot" if b["top60"] >= 10 else "warm" if b["top60"] >= 8 else ""
-        bp = " ".join(f'{k}{v}' for k, v in b["by_pos"].items() if v)
-        A(f'<tr class="{cls}"><td class=wk>{b["week"]}</td>'
-          f'<td class=cnt>{b["top60"]}</td><td class=pc>{esc(bp)}</td>'
-          f'<td class=nm>{esc(", ".join(b["names"][:7]))}</td></tr>')
-    A("</table>")
-    A('<div class=note><b>The rule for this roster:</b> two <i>starters</i> on the '
-      'same bye is a real problem with only four bench spots — you start a hole. '
-      'Two bench players on the same bye is not. Weeks shaded red take 10+ of the '
-      'top 60 off the field at once; if you already hold two starters on one of '
-      'those weeks, break the tie toward a different bye.</div>')
-
-    # 4 --- handcuffs
-    A('<h2>Handcuffs <span class=sub>who backs up the RB you just took</span></h2>'
-      '<div class=hc>')
-    for h in p["handcuffs"][:24]:
-        br = f'board #{h["back_board_rank"]}' if h["back_board_rank"] else "off board"
-        asu = " · assumed still there" if h.get("assumed_same_team") else ""
-        A(f'<div class=hcp><div class=a>{esc(h["lead"])} '
-          f'<span style="color:var(--faint);font-size:12px">#{h["lead_rank"]} '
-          f'{esc(h["team"])}</span></div>'
-          f'<div class=b>&rarr; {esc(h["back"])}</div>'
-          f'<div class=c>{h["back_carries"]} carries in 2025 · {esc(br)}{esc(asu)}</div></div>')
-    A("</div>")
-    A('<div class=note>Backups are the 2025 second-most-used back on that player\'s '
-      '<b>2026</b> team. Pairs marked <i>assumed still there</i> are not on the '
-      '129-player board, so there is no 2026 evidence about them either way — '
-      'check the roster before spending a pick.</div>')
-
-    A('<footer>Generated by build_reference.py · '
-      'static, no network, no modelling in the page<br>'
-      'Rookie tiers from 825 rookie seasons 2013-2025 · '
-      'handcuffs from 2025 carries on 2026 teams</footer>')
-    A("</body></html>")
-    return "\n".join(L)
 
 
 if __name__ == "__main__":
