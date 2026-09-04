@@ -211,6 +211,35 @@ const T = (name, val) => { checks[name] = val; };
   T('an old run ages out of the window', runs.aged === 0);
   T('window capped at 10 picks', runs.windowCapped === 10);
 
+  // ---------- 8. no template-literal syntax leaks into rendered text ----------
+  // Both board-size messages once shipped as literal "${RANKS.length}" because
+  // they used template syntax inside plain quoted strings. Nothing asserted on
+  // rendered copy, so only a screenshot caught it. Assert on it now.
+  const copy = await page.evaluate(() => {
+    const { S, norm, render } = window.DRAFT;
+    const R = JSON.parse(document.getElementById('ranksData').textContent).ranks;
+    const grab = () => document.body.innerText;
+    const seen = [];
+    S.picks = []; S.taken = new Set(); render(false); seen.push(grab());
+    // mid-draft
+    S.picks = R.slice(0, 40).map((x, i) => ({ pickNo: i + 1, round: Math.ceil((i + 1) / 12),
+      slot: (i % 12) + 1, name: x.name, pos: x.pos, team: x.team, ranked: x }));
+    S.taken = new Set(S.picks.map(p => p.ranked.pos === 'DST'
+      ? p.ranked.team.toUpperCase() : norm(p.ranked.name)));
+    render(false); seen.push(grab());
+    // board fully exhausted
+    S.picks = R.map((x, i) => ({ pickNo: i + 1, round: Math.ceil((i + 1) / 12),
+      slot: (i % 12) + 1, name: x.name, pos: x.pos, team: x.team, ranked: x }));
+    S.taken = new Set(R.map(x => x.pos === 'DST' ? x.team.toUpperCase() : norm(x.name)));
+    render(false); seen.push(grab());
+    S.picks = []; S.taken = new Set(); render(false);
+    const all = seen.join('\n');
+    return { leak: /\$\{/.test(all), boardSize: R.length,
+             mentionsSize: all.includes(String(R.length)) };
+  });
+  T('no ${...} leaks into rendered copy in any board state', copy.leak === false);
+  T('board-size copy reports the real board length', copy.mentionsSize);
+
   T('no JS errors', errors.length === 0);
 
   let fail = 0;
