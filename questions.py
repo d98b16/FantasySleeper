@@ -60,6 +60,7 @@ def q_sixpoint(panel):
         print(f"        90% of cells fall in [{lo:.1f}, {hi:.1f}]   "
               f"season-clustered SE {se:.1f}  ->  95% CI "
               f"[{s.mean()-1.96*se:.1f}, {s.mean()+1.96*se:.1f}]")
+    d.to_csv(os.path.join(OUT, "sixpoint.csv"), index=False, float_format="%.4f")
     per = d[d.tier == "top6"].groupby("season").gain_season.median()
     print(f"\n  by season (top-6, median across replacement ranks):")
     print("   " + "  ".join(f"{int(y)}:{v:+.0f}" for y, v in per.items()))

@@ -122,8 +122,29 @@ def main_with_edge():
                                 "model_mae": round(float(m), 3),
                                 "model_beats_adp": bool(m < a)}
 
+    # the 6-point result, now on 14 seasons instead of 2
+    six = {}
+    sp = os.path.join(OUT, "sixpoint.csv")
+    if os.path.exists(sp):
+        sd = pd.read_csv(sp)
+        for tier in ("top6", "top3", "QB1"):
+            t = sd[sd.tier == tier].gain_season
+            if len(t):
+                by_season = sd[sd.tier == tier].groupby("season").gain_season.median()
+                se = t.std(ddof=1) / np.sqrt(by_season.size)
+                six[tier] = {
+                    "median": round(float(t.median()), 1),
+                    "mean": round(float(t.mean()), 1),
+                    "ci_lo": round(float(t.mean() - 1.96 * se), 1),
+                    "ci_hi": round(float(t.mean() + 1.96 * se), 1),
+                    "seasons": int(by_season.size),
+                    "negative_seasons": int((by_season < 0).sum()),
+                }
+        six["cells"] = int(len(sd))
+
     payload = {
         "version": 3,
+        "sixpoint": six,
         "generated_from": "nflverse 2012-2025 + FantasyFootballCalculator ADP 2010-2025",
         "scoring": {"half_ppr": 0.5, "pass_td": 6, "pass_int": -2,
                     "note": "verified live against Sleeper league scoring_settings"},
