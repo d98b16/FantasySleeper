@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Draft Console — Pick 3</title>
+<style>
+:root{
+  --bg:#0d1117; --panel:#161b22; --panel2:#1c2430; --line:#2d3947;
+  --tx:#e6edf3; --dim:#8b98a5; --faint:#5c6b7a;
+  --rb:#3fb950; --wr:#58a6ff; --qb:#f0883e; --te:#bc8cff; --dst:#8b98a5;
+  --good:#3fb950; --warn:#d29922; --bad:#f85149; --gold:#e3b341;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:12px}
+h1,h2,h3{font-weight:700;letter-spacing:-.01em}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+header h1{font-size:17px}
+.tag{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--dim);border:1px solid var(--line);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;background:var(--faint)}
+.dot.live{background:var(--good);box-shadow:0 0 7px var(--good);animation:pulse 1.6s infinite}
+.dot.demo{background:var(--gold);box-shadow:0 0 7px var(--gold)}
+.dot.err{background:var(--bad);box-shadow:0 0 7px var(--bad)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+button{font:inherit;font-size:12px;font-weight:600;color:var(--tx);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:5px 11px;cursor:pointer}
+button:hover{border-color:var(--wr);color:var(--wr)}
+button.primary{background:var(--wr);color:#06121f;border-color:var(--wr)}
+button.primary:hover{opacity:.85;color:#06121f}
+input,select{font:inherit;font-size:12px;color:var(--tx);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+input:focus,select:focus{outline:none;border-color:var(--wr)}
+
+/* ---------- setup ---------- */
+#setup{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:12px;margin-bottom:10px}
+#setup[hidden]{display:none}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:700}
+.hint{font-size:11px;color:var(--dim);margin-top:9px;line-height:1.6}
+.hint code{background:var(--panel2);padding:1px 5px;border-radius:4px;color:var(--wr);font-size:10px}
+
+/* ---------- clock ---------- */
+#clock{background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);border:1px solid var(--line);border-left:4px solid var(--faint);border-radius:9px;padding:13px 16px;margin-bottom:10px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+#clock.mine{border-left-color:var(--good);background:linear-gradient(180deg,#12261a 0%,var(--panel2) 100%);animation:glow 1.5s ease-in-out infinite}
+#clock.soon{border-left-color:var(--warn)}
+@keyframes glow{0%,100%{box-shadow:0 0 0 rgba(63,185,80,0)}50%{box-shadow:0 0 22px rgba(63,185,80,.28)}}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .k{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);font-weight:700}
+.stat .v{font-size:23px;font-weight:800;line-height:1.1}
+.stat .v.sm{font-size:15px;font-weight:700}
+#turnMsg{margin-left:auto;font-size:19px;font-weight:800;text-align:right}
+
+/* ---------- grid ---------- */
+.grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:10px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:10px}
+.card > h2{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);padding:9px 12px;border-bottom:1px solid var(--line);background:var(--panel2);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card > h2 .sub{font-weight:600;letter-spacing:0;text-transform:none;color:var(--faint);font-size:10px}
+
+/* ---------- players ---------- */
+table{width:100%;border-collapse:collapse}
+th{font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);font-weight:700}
+td{padding:7px 10px;border-bottom:1px solid rgba(45,57,71,.45);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr.top{background:rgba(88,166,255,.07)}
+tbody tr:hover{background:rgba(255,255,255,.035)}
+.pos{display:inline-block;min-width:30px;text-align:center;font-size:10px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:.02em}
+.pos.RB{color:var(--rb);background:rgba(63,185,80,.14)}
+.pos.WR{color:var(--wr);background:rgba(88,166,255,.14)}
+.pos.QB{color:var(--qb);background:rgba(240,136,62,.14)}
+.pos.TE{color:var(--te);background:rgba(188,140,255,.14)}
+.pos.DST,.pos.K{color:var(--dst);background:rgba(139,152,165,.14)}
+.pname{font-weight:700}
+.meta{font-size:10.5px;color:var(--faint)}
+.why{font-size:10.5px;color:var(--dim);margin-top:2px;line-height:1.35}
+.why b{color:var(--gold);font-weight:700}
+.tierchip{font-size:9.5px;font-weight:800;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.num{text-align:right;font-size:12px}
+
+/* ---------- needs / supply ---------- */
+.needs{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line)}
+.needs > div{background:var(--panel);padding:9px 6px;text-align:center}
+.needs .p{font-size:10px;font-weight:800;letter-spacing:.04em}
+.needs .c{font-size:19px;font-weight:800;margin-top:1px}
+.needs .n{font-size:9.5px;color:var(--faint);margin-top:1px}
+.needs .c.ok{color:var(--good)} .needs .c.gap{color:var(--warn)}
+
+.supply{padding:4px 12px 10px}
+.srow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(45,57,71,.4)}
+.srow:last-child{border-bottom:none}
+.srow .lbl{width:34px;font-size:11px;font-weight:800}
+.bar{flex:1;height:7px;background:var(--panel2);border-radius:99px;overflow:hidden;display:flex;gap:1px}
+.bar i{display:block;height:100%}
+.srow .cnt{font-size:10.5px;color:var(--dim);width:78px;text-align:right}
+.alert{margin:8px 12px 11px;padding:7px 10px;border-radius:6px;font-size:11.5px;line-height:1.45;border-left:3px solid}
+.alert.warn{background:rgba(210,153,34,.1);border-color:var(--warn);color:#f0d488}
+.alert.bad{background:rgba(248,81,73,.1);border-color:var(--bad);color:#ffb3ae}
+.alert.good{background:rgba(63,185,80,.1);border-color:var(--good);color:#8ee79c}
+
+/* ---------- roster / feed ---------- */
+.rlist{padding:6px 12px 10px;display:flex;flex-direction:column;gap:5px}
+.ritem{display:flex;align-items:center;gap:8px;font-size:12px}
+.ritem .rd{font-size:9.5px;color:var(--faint);width:26px}
+.empty{padding:14px 12px;color:var(--faint);font-size:11.5px;text-align:center}
+#feed{max-height:210px;overflow-y:auto}
+.fitem{display:flex;align-items:center;gap:8px;padding:5px 12px;border-bottom:1px solid rgba(45,57,71,.4);font-size:11.5px}
+.fitem:last-child{border-bottom:none}
+.fitem.me{background:rgba(63,185,80,.09)}
+.fitem .pk{font-size:10px;color:var(--faint);width:40px}
+.fitem.new{animation:flash 1.1s ease-out}
+@keyframes flash{0%{background:rgba(88,166,255,.32)}100%{background:transparent}}
+.planline{padding:8px 12px;font-size:11.5px;line-height:1.5;border-bottom:1px solid rgba(45,57,71,.4)}
+.planline:last-child{border-bottom:none}
+.planline b{color:var(--wr)}
+footer{margin-top:10px;font-size:10.5px;color:var(--faint);text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Draft Console</h1>
+  <span class="tag"><span class="dot" id="dot"></span><span id="statusTx">idle</span></span>
+  <span class="tag" id="leagueTag" hidden></span>
+  <span class="tag" id="rateTag" hidden></span>
+  <button id="setupBtn" style="margin-left:auto">Settings</button>
+  <button id="demoBtn">Run demo draft</button>
+  <button id="connectBtn" class="primary">Connect</button>
+</header>
+
+<section id="setup">
+  <div class="row">
+    <div class="fld" style="flex:1;min-width:210px">
+      <label for="leagueId">Sleeper league ID <span style="color:var(--faint);text-transform:none;letter-spacing:0">(or draft ID)</span></label>
+      <input id="leagueId" value="1389326749023608832" autocomplete="off">
+    </div>
+    <div class="fld"><label for="mySlot">My slot</label><input id="mySlot" type="number" min="1" max="16" value="3" style="width:74px"></div>
+    <div class="fld"><label for="teams">Teams</label><input id="teams" type="number" min="4" max="16" value="12" style="width:74px"></div>
+    <div class="fld"><label for="pollMs">Poll (ms)</label>
+      <select id="pollMs">
+        <option value="1000">1000 — fastest</option>
+        <option value="2000" selected>2000 — recommended</option>
+        <option value="4000">4000 — easy</option>
+      </select>
+    </div>
+    <button id="saveBtn" class="primary">Save &amp; connect</button>
+  </div>
+  <div class="hint">
+    <b>Find your league ID:</b> open your league on <code>sleeper.com</code> in a browser — the URL reads
+    <code>sleeper.com/leagues/<b>1124839274652991488</b>/team</code>. That number is it. A draft ID works too.<br>
+    Sleeper's API is public and <b>read-only</b> — no login, no key, nothing to authorize. This page only ever reads.
+  </div>
+</section>
+
+<section id="clock">
+  <div class="stat"><span class="k">Pick</span><span class="v mono" id="cPick">—</span></div>
+  <div class="stat"><span class="k">Round</span><span class="v mono" id="cRound">—</span></div>
+  <div class="stat"><span class="k">Until you</span><span class="v mono" id="cUntil">—</span></div>
+  <div class="stat"><span class="k">Your next</span><span class="v sm mono" id="cNext">—</span></div>
+  <div class="stat"><span class="k">On the clock</span><span class="v sm" id="cWho">—</span></div>
+  <div id="turnMsg"></div>
+</section>
+
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>Best available <span class="sub" id="baSub">by our board + your needs</span></h2>
+      <table>
+        <thead><tr><th style="width:34px">#</th><th>Player</th><th style="width:44px">Pos</th><th style="width:38px">Bye</th><th style="width:46px" class="num">ADP</th><th style="width:40px">Tier</th></tr></thead>
+        <tbody id="baBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Pick feed <span class="sub" id="feedSub"></span></h2>
+      <div id="feed"><div class="empty">No picks yet.</div></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Your roster needs</h2>
+      <div class="needs" id="needs"></div>
+      <div id="alerts"></div>
+    </div>
+    <div class="card">
+      <h2>Tier supply <span class="sub">elite left · undrafted</span></h2>
+      <div class="supply" id="supply"></div>
+    </div>
+    <div class="card">
+      <h2>Your team <span class="sub" id="rosterSub"></span></h2>
+      <div class="rlist" id="roster"><div class="empty">Nothing drafted yet.</div></div>
+    </div>
+    <div class="card">
+      <h2>Plan for your next pick</h2>
+      <div id="planBox"></div>
+      <div class="planline why" style="color:var(--faint);border-top:1px solid var(--line)">
+        Board covers the top 120. A 12&times;12 draft is 144 picks, so late rounds run past our rankings — expected, not a bug.
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  GovSmart Gridiron · 12-team · 0.5 PPR · 6-pt pass TD · $100 FAAB · 12 rounds · NO KICKER · DEF required · draft Fri Sep 4, 5:30 PM ET<br>
+  Edit <b>RANKS</b>, <b>WEIGHTS</b>, or <b>ROSTER_NEED</b> in this file's script block to change the logic.
+</footer>
+
+<script id="ranksData" type="application/json">{"ranks":[{"rank":1,"name":"Jahmyr Gibbs","pos":"RB","team":"DET","bye":6,"adp":1.5,"tier":1,"notes":""},{"rank":2,"name":"Bijan Robinson","pos":"RB","team":"ATL","bye":11,"adp":2.2,"tier":1,"notes":""},{"rank":3,"name":"Puka Nacua","pos":"WR","team":"LAR","bye":11,"adp":3.0,"tier":1,"notes":"Groin \u2014 minor, expected Wk1"},{"rank":4,"name":"Ja'Marr Chase","pos":"WR","team":"CIN","bye":6,"adp":3.9,"tier":1,"notes":"Safest WR1"},{"rank":5,"name":"Jaxon Smith-Njigba","pos":"WR","team":"SEA","bye":11,"adp":5.2,"tier":1,"notes":""},{"rank":6,"name":"Jonathan Taylor","pos":"RB","team":"IND","bye":13,"adp":5.9,"tier":2,"notes":""},{"rank":7,"name":"Christian McCaffrey","pos":"RB","team":"SF","bye":8,"adp":6.6,"tier":2,"notes":"Elite when healthy"},{"rank":8,"name":"Amon-Ra St. Brown","pos":"WR","team":"DET","bye":6,"adp":8.0,"tier":2,"notes":""},{"rank":9,"name":"James Cook III","pos":"RB","team":"BUF","bye":7,"adp":9.3,"tier":2,"notes":""},{"rank":10,"name":"Derrick Henry","pos":"RB","team":"BAL","bye":13,"adp":9.7,"tier":2,"notes":"Age, still elite"},{"rank":11,"name":"De'Von Achane","pos":"RB","team":"MIA","bye":6,"adp":11.7,"tier":2,"notes":""},{"rank":12,"name":"Drake London","pos":"WR","team":"ATL","bye":11,"adp":12.0,"tier":2,"notes":""},{"rank":13,"name":"CeeDee Lamb","pos":"WR","team":"DAL","bye":14,"adp":12.5,"tier":2,"notes":""},{"rank":14,"name":"Justin Jefferson","pos":"WR","team":"MIN","bye":6,"adp":14.4,"tier":3,"notes":""},{"rank":15,"name":"Chase Brown","pos":"RB","team":"CIN","bye":6,"adp":15.1,"tier":3,"notes":""},{"rank":16,"name":"Rashee Rice","pos":"WR","team":"KC","bye":5,"adp":15.2,"tier":3,"notes":""},{"rank":17,"name":"Saquon Barkley","pos":"RB","team":"PHI","bye":10,"adp":17.6,"tier":3,"notes":""},{"rank":18,"name":"Nico Collins","pos":"WR","team":"HOU","bye":8,"adp":18.4,"tier":3,"notes":""},{"rank":19,"name":"Ashton Jeanty","pos":"RB","team":"LV","bye":13,"adp":18.9,"tier":3,"notes":"Ankle \u2014 Wk1 uncertain; ADP sliding (~15 to 19)"},{"rank":20,"name":"George Pickens","pos":"WR","team":"DAL","bye":14,"adp":19.9,"tier":3,"notes":""},{"rank":21,"name":"A.J. Brown","pos":"WR","team":"NE","bye":11,"adp":20.0,"tier":3,"notes":"New team (NE)"},{"rank":22,"name":"Kenneth Walker III","pos":"RB","team":"KC","bye":5,"adp":20.5,"tier":3,"notes":"Now in KC"},{"rank":23,"name":"Chris Olave","pos":"WR","team":"NO","bye":8,"adp":23.2,"tier":4,"notes":""},{"rank":24,"name":"Omarion Hampton","pos":"RB","team":"LAC","bye":7,"adp":24.0,"tier":4,"notes":""},{"rank":25,"name":"Zay Flowers","pos":"WR","team":"BAL","bye":13,"adp":25.2,"tier":4,"notes":""},{"rank":26,"name":"Josh Jacobs","pos":"RB","team":"GB","bye":11,"adp":25.4,"tier":4,"notes":""},{"rank":27,"name":"Malik Nabers","pos":"WR","team":"NYG","bye":8,"adp":26.2,"tier":4,"notes":"Knee \u2014 expected Wk1"},{"rank":28,"name":"Kyren Williams","pos":"RB","team":"LAR","bye":11,"adp":27.4,"tier":4,"notes":""},{"rank":29,"name":"Jeremiyah Love","pos":"RB","team":"ARI","bye":14,"adp":29.0,"tier":4,"notes":"Rookie; high-ankle \u2014 expected Wk1"},{"rank":30,"name":"Tetairoa McMillan","pos":"WR","team":"CAR","bye":5,"adp":30.7,"tier":4,"notes":""},{"rank":31,"name":"Garrett Wilson","pos":"WR","team":"NYJ","bye":13,"adp":31.1,"tier":4,"notes":""},{"rank":32,"name":"DeVonta Smith","pos":"WR","team":"PHI","bye":10,"adp":31.6,"tier":4,"notes":"Value"},{"rank":33,"name":"Josh Allen","pos":"QB","team":"BUF","bye":7,"adp":33.0,"tier":5,"notes":"QB1 overall \u2014 6-pt pass-TD riser"},{"rank":34,"name":"Javonte Williams","pos":"RB","team":"DAL","bye":14,"adp":33.2,"tier":5,"notes":"Now in DAL"},{"rank":35,"name":"Breece Hall","pos":"RB","team":"NYJ","bye":13,"adp":33.5,"tier":5,"notes":"Groin \u2014 expected Wk1; market rising"},{"rank":36,"name":"Emeka Egbuka","pos":"WR","team":"TB","bye":10,"adp":33.7,"tier":5,"notes":"Toe \u2014 monitor (Q)"},{"rank":37,"name":"Tee Higgins","pos":"WR","team":"CIN","bye":6,"adp":35.9,"tier":5,"notes":""},{"rank":38,"name":"Travis Etienne Jr.","pos":"RB","team":"NO","bye":8,"adp":37.3,"tier":5,"notes":"Now in NO"},{"rank":39,"name":"Trey McBride","pos":"TE","team":"ARI","bye":14,"adp":37.8,"tier":5,"notes":"TE1 \u2014 elite"},{"rank":40,"name":"Davante Adams","pos":"WR","team":"LAR","bye":11,"adp":37.9,"tier":5,"notes":"Now in LAR"},{"rank":41,"name":"Cam Skattebo","pos":"RB","team":"NYG","bye":8,"adp":38.4,"tier":5,"notes":"Risky at cost"},{"rank":42,"name":"Jameson Williams","pos":"WR","team":"DET","bye":6,"adp":38.7,"tier":5,"notes":"Upside"},{"rank":43,"name":"Ladd McConkey","pos":"WR","team":"LAC","bye":7,"adp":41.0,"tier":5,"notes":""},{"rank":44,"name":"D'Andre Swift","pos":"RB","team":"CHI","bye":10,"adp":43.2,"tier":6,"notes":""},{"rank":45,"name":"Brock Bowers","pos":"TE","team":"LV","bye":13,"adp":44.0,"tier":6,"notes":"Elite TE \u2014 positional edge"},{"rank":46,"name":"DJ Moore","pos":"WR","team":"BUF","bye":7,"adp":44.9,"tier":6,"notes":"Now in BUF"},{"rank":47,"name":"Terry McLaurin","pos":"WR","team":"WAS","bye":7,"adp":45.1,"tier":6,"notes":""},{"rank":48,"name":"Bucky Irving","pos":"RB","team":"TB","bye":10,"adp":47.0,"tier":6,"notes":""},{"rank":49,"name":"Jaylen Waddle","pos":"WR","team":"DEN","bye":10,"adp":47.3,"tier":6,"notes":"Now in DEN"},{"rank":50,"name":"Rome Odunze","pos":"WR","team":"CHI","bye":10,"adp":48.9,"tier":6,"notes":""},{"rank":51,"name":"Drake Maye","pos":"QB","team":"NE","bye":11,"adp":51.3,"tier":6,"notes":"6-pt pass-TD riser"},{"rank":52,"name":"Quinshon Judkins","pos":"RB","team":"CLE","bye":11,"adp":51.5,"tier":6,"notes":""},{"rank":53,"name":"Bhayshul Tuten","pos":"RB","team":"JAX","bye":7,"adp":52.5,"tier":6,"notes":"Upside"},{"rank":54,"name":"Mike Evans","pos":"WR","team":"SF","bye":8,"adp":54.2,"tier":6,"notes":"Now in SF"},{"rank":55,"name":"Lamar Jackson","pos":"QB","team":"BAL","bye":13,"adp":55.5,"tier":6,"notes":"6-pt pass-TD riser (rush+pass)"},{"rank":56,"name":"David Montgomery","pos":"RB","team":"HOU","bye":8,"adp":55.5,"tier":6,"notes":"Now in HOU"},{"rank":57,"name":"Christian Watson","pos":"WR","team":"GB","bye":11,"adp":56.0,"tier":7,"notes":""},{"rank":58,"name":"Joe Burrow","pos":"QB","team":"CIN","bye":6,"adp":57.5,"tier":7,"notes":"6-pt pass-TD riser"},{"rank":59,"name":"Luther Burden III","pos":"WR","team":"CHI","bye":10,"adp":57.6,"tier":7,"notes":"Groin \u2014 expected Wk1; ADP rising"},{"rank":60,"name":"Courtland Sutton","pos":"WR","team":"DEN","bye":10,"adp":59.1,"tier":7,"notes":""},{"rank":61,"name":"Ollie Gordon II","pos":"RB","team":"MIA","bye":6,"adp":null,"tier":7,"notes":"Fell out of top-60 ADP \u2014 monitor role"},{"rank":62,"name":"Alec Pierce","pos":"WR","team":"IND","bye":13,"adp":null,"tier":7,"notes":"Ankle/PUP \u2014 expected Wk1"},{"rank":63,"name":"DK Metcalf","pos":"WR","team":"PIT","bye":9,"adp":null,"tier":7,"notes":""},{"rank":64,"name":"Marvin Harrison Jr.","pos":"WR","team":"ARI","bye":14,"adp":null,"tier":7,"notes":"Bounce-back upside"},{"rank":65,"name":"Parker Washington","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":7,"notes":""},{"rank":66,"name":"Brian Thomas Jr.","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":7,"notes":"Upside"},{"rank":67,"name":"Jaylen Warren","pos":"RB","team":"PIT","bye":9,"adp":null,"tier":7,"notes":""},{"rank":68,"name":"Carnell Tate","pos":"WR","team":"TEN","bye":9,"adp":null,"tier":7,"notes":"Rookie"},{"rank":69,"name":"Rhamondre Stevenson","pos":"RB","team":"NE","bye":11,"adp":null,"tier":7,"notes":""},{"rank":70,"name":"Chris Godwin Jr.","pos":"WR","team":"TB","bye":10,"adp":null,"tier":7,"notes":""},{"rank":71,"name":"TreVeyon Henderson","pos":"RB","team":"NE","bye":11,"adp":null,"tier":7,"notes":"Upside"},{"rank":72,"name":"Michael Pittman Jr.","pos":"WR","team":"PIT","bye":9,"adp":null,"tier":8,"notes":"Now in PIT"},{"rank":73,"name":"Tony Pollard","pos":"RB","team":"TEN","bye":9,"adp":null,"tier":8,"notes":""},{"rank":74,"name":"Jakobi Meyers","pos":"WR","team":"JAX","bye":7,"adp":null,"tier":8,"notes":"Now in JAX"},{"rank":75,"name":"Jordan Addison","pos":"WR","team":"MIN","bye":6,"adp":null,"tier":8,"notes":""},{"rank":76,"name":"Quentin Johnston","pos":"WR","team":"LAC","bye":7,"adp":null,"tier":8,"notes":""},{"rank":77,"name":"Jayden Reed","pos":"WR","team":"GB","bye":11,"adp":null,"tier":8,"notes":""},{"rank":78,"name":"George Kittle","pos":"TE","team":"SF","bye":8,"adp":null,"tier":8,"notes":"Achilles \u2014 expected Wk1"},{"rank":79,"name":"Wan'Dale Robinson","pos":"WR","team":"TEN","bye":9,"adp":null,"tier":8,"notes":"Now in TEN"},{"rank":80,"name":"Josh Downs","pos":"WR","team":"IND","bye":13,"adp":null,"tier":8,"notes":""},{"rank":81,"name":"Rico Dowdle","pos":"RB","team":"PIT","bye":9,"adp":null,"tier":8,"notes":""},{"rank":82,"name":"Dak Prescott","pos":"QB","team":"DAL","bye":14,"adp":null,"tier":8,"notes":""},{"rank":83,"name":"Stefon Diggs","pos":"WR","team":"WAS","bye":7,"adp":null,"tier":8,"notes":"Now in WAS"},{"rank":84,"name":"Xavier Worthy","pos":"WR","team":"KC","bye":5,"adp":null,"tier":8,"notes":""},{"rank":85,"name":"Deebo Samuel Sr.","pos":"WR","team":"SF","bye":8,"adp":null,"tier":8,"notes":""},{"rank":86,"name":"J.K. Dobbins","pos":"RB","team":"DEN","bye":10,"adp":null,"tier":8,"notes":""},{"rank":87,"name":"Jayden Daniels","pos":"QB","team":"WAS","bye":7,"adp":null,"tier":8,"notes":"6-pt pass-TD riser (rush+pass)"},{"rank":88,"name":"Jadarian Price","pos":"RB","team":"SEA","bye":11,"adp":null,"tier":8,"notes":"Rookie"},{"rank":89,"name":"Matthew Stafford","pos":"QB","team":"LAR","bye":11,"adp":null,"tier":8,"notes":""},{"rank":90,"name":"Matthew Golden","pos":"WR","team":"GB","bye":11,"adp":null,"tier":9,"notes":"Upside"},{"rank":91,"name":"Colston Loveland","pos":"TE","team":"CHI","bye":10,"adp":null,"tier":9,"notes":""},{"rank":92,"name":"Jalen Hurts","pos":"QB","team":"PHI","bye":10,"adp":null,"tier":9,"notes":"Rushing QB \u2014 6-pt pass-TD riser"},{"rank":93,"name":"Brock Purdy","pos":"QB","team":"SF","bye":8,"adp":null,"tier":9,"notes":""},{"rank":94,"name":"Chuba Hubbard","pos":"RB","team":"CAR","bye":5,"adp":null,"tier":9,"notes":"Hamstring; committee w/ Brooks"},{"rank":95,"name":"Khalil Shakir","pos":"WR","team":"BUF","bye":7,"adp":null,"tier":9,"notes":""},{"rank":96,"name":"Romeo Doubs","pos":"WR","team":"NE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":97,"name":"Makai Lemon","pos":"WR","team":"PHI","bye":10,"adp":null,"tier":9,"notes":"Rookie \u2014 upside"},{"rank":98,"name":"Trevor Lawrence","pos":"QB","team":"JAX","bye":7,"adp":null,"tier":9,"notes":""},{"rank":99,"name":"Caleb Williams","pos":"QB","team":"CHI","bye":10,"adp":null,"tier":9,"notes":"Upside"},{"rank":100,"name":"Jared Goff","pos":"QB","team":"DET","bye":6,"adp":null,"tier":9,"notes":""},{"rank":101,"name":"Tyler Warren","pos":"TE","team":"IND","bye":13,"adp":null,"tier":9,"notes":"Groin \u2014 expected Wk1"},{"rank":102,"name":"Patrick Mahomes","pos":"QB","team":"KC","bye":5,"adp":null,"tier":9,"notes":"Knee \u2014 reduced rush upside"},{"rank":103,"name":"Jalen Coker","pos":"WR","team":"CAR","bye":5,"adp":null,"tier":9,"notes":""},{"rank":104,"name":"Rashid Shaheed","pos":"WR","team":"SEA","bye":11,"adp":null,"tier":9,"notes":"Now in SEA"},{"rank":105,"name":"Jerry Jeudy","pos":"WR","team":"CLE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":106,"name":"KC Concepcion","pos":"WR","team":"CLE","bye":11,"adp":null,"tier":9,"notes":"Rookie"},{"rank":107,"name":"Harold Fannin Jr.","pos":"TE","team":"CLE","bye":11,"adp":null,"tier":9,"notes":""},{"rank":108,"name":"Jonathon Brooks","pos":"RB","team":"CAR","bye":5,"adp":null,"tier":9,"notes":"Committee w/ Hubbard"},{"rank":109,"name":"Justin Herbert","pos":"QB","team":"LAC","bye":7,"adp":null,"tier":10,"notes":""},{"rank":110,"name":"Kyle Pitts Sr.","pos":"TE","team":"ATL","bye":11,"adp":null,"tier":10,"notes":""},{"rank":111,"name":"Bo Nix","pos":"QB","team":"DEN","bye":10,"adp":null,"tier":10,"notes":""},{"rank":112,"name":"Jaxson Dart","pos":"QB","team":"NYG","bye":8,"adp":null,"tier":10,"notes":"Upside"},{"rank":113,"name":"Kyle Monangai","pos":"RB","team":"CHI","bye":10,"adp":null,"tier":10,"notes":"Knee \u2014 multi-week (Q)"},{"rank":114,"name":"Dallas Goedert","pos":"TE","team":"PHI","bye":10,"adp":null,"tier":10,"notes":""},{"rank":115,"name":"Kenny Gainwell","pos":"RB","team":"TB","bye":10,"adp":null,"tier":10,"notes":""},{"rank":116,"name":"Tre Tucker","pos":"WR","team":"LV","bye":13,"adp":null,"tier":10,"notes":""},{"rank":117,"name":"RJ Harvey","pos":"RB","team":"DEN","bye":10,"adp":null,"tier":10,"notes":"Handcuff (Dobbins)"},{"rank":118,"name":"Seattle D/ST","pos":"DST","team":"SEA","bye":11,"adp":null,"tier":10,"notes":"Stream \u2014 draft last 2 rds"},{"rank":119,"name":"Denver D/ST","pos":"DST","team":"DEN","bye":10,"adp":null,"tier":10,"notes":"Stream \u2014 draft last 2 rds"},{"rank":120,"name":"Houston D/ST","pos":"DST","team":"HOU","bye":8,"adp":null,"tier":10,"notes":"Stream \u2014 draft last 2 rds"}],"plan":[{"rd":1,"pick":3,"window":"1-6","target":"Ja'Marr Chase or Puka Nacua (elite WR1)","fallback":"Jaxon Smith-Njigba; Bijan Robinson if he slips","note":"Gibbs & Bijan usually gone 1-2. Lock an elite WR. Don't overthink it."},{"rd":2,"pick":22,"window":"18-25","target":"Kenneth Walker III or Omarion Hampton (anchor an RB)","fallback":"Ashton Jeanty if he slides (ankle discount); Nico Collins / A.J. Brown (WR)","note":"RB dries up fast. Grab your RB1 at the turn."},{"rd":3,"pick":27,"window":"24-31","target":"Malik Nabers or Zay Flowers (WR); Kyren Williams (RB)","fallback":"Chris Olave; Jeremiyah Love; DeVonta Smith","note":"You pick 22 & 27 back-to-back. Take whichever position you skipped at 22."},{"rd":4,"pick":46,"window":"43-52","target":"Brock Bowers (elite-TE edge) OR Terry McLaurin / DJ Moore (WR)","fallback":"Bucky Irving; Quinshon Judkins (RB)","note":"Prime spot to steal Bowers at TE, or keep stacking RB/WR."},{"rd":5,"pick":51,"window":"48-58","target":"Lamar Jackson (6-pt pass-TD stud) if he slides \u2014 or RB Quinshon Judkins / WR Mike Evans","fallback":"Drake Maye / Joe Burrow; David Montgomery; Bhayshul Tuten","note":"Elite QB is worth it in your format. Grab Lamar if he's there; else fill your thinnest spot."},{"rd":6,"pick":70,"window":"60-72","target":"DK Metcalf / Marvin Harrison Jr. (WR upside)","fallback":"Dak Prescott / Jayden Daniels (QB) if you skipped QB; TreVeyon Henderson (RB)","note":"Hunt upside WRs. If you still need a QB, Dak/Daniels are strong in 6-pt."},{"rd":7,"pick":75,"window":"72-80","target":"Jordan Addison / Jayden Reed (WR)","fallback":"Tony Pollard (RB); Dak or J. Daniels if a QB run starts","note":"Best-available target share. Don't get left without a QB."},{"rd":8,"pick":94,"window":"87-99","target":"Jalen Hurts or Jayden Daniels (QB) \u2014 if you waited","fallback":"Matthew Golden / Khalil Shakir (WR); Chuba Hubbard (RB)","note":"Prime QB window. With 6-pt pass TDs, Hurts/Daniels here is a steal \u2014 rush + pass points."},{"rd":9,"pick":99,"window":"94-104","target":"Tyler Warren (TE) or Makai Lemon / Matthew Golden (WR)","fallback":"Patrick Mahomes if QB still open; an RB handcuff","note":"Add upside, your QB2, or a starting TE if you still need one."},{"rd":10,"pick":118,"window":"110-123","target":"Kyle Pitts (TE) or handcuff RBs (RJ Harvey, Jonathon Brooks)","fallback":"Justin Herbert / Bo Nix (QB)","note":"Start handcuffing your RBs; add lottery tickets."},{"rd":11,"pick":123,"window":"Best avail.","target":"Handcuff your RB1/RB2; high-upside WR","fallback":"2nd TE or QB if thin","note":"Protect your studs. Bench = upside swings."},{"rd":12,"pick":142,"window":"Best avail.","target":"Upside WR/RB stashes; rookie breakouts","fallback":"\u2014","note":"Swing for ceiling, not floor, on the bench."},{"rd":13,"pick":147,"window":"Best avail.","target":"Best-available upside; more handcuffs","fallback":"\u2014","note":"Keep taking talent. No K/DST yet."},{"rd":14,"pick":166,"window":"Streamers","target":"Top DST (Seattle / Denver / Houston)","fallback":"\u2014","note":"Now grab a defense with a good Week-1 matchup."},{"rd":15,"pick":171,"window":"Streamers","target":"Kicker (any high-scoring offense)","fallback":"\u2014","note":"Kicker last. Stream both DST & K weekly."}],"scenarios":["DEFAULT (you took a WR at 3): leave the 22/27 turn with an RB anchor + one more stud.  Ideal pairs: Walker + Nabers  \u00b7  Hampton + Kyren  \u00b7  Jacobs + Olave.","CHASE AND NACUA BOTH GONE AT 3: take Jaxon Smith-Njigba. Do NOT reach for an RB at 3 \u2014 the Tier-1 WR still wins the pick.","GIBBS OR BIJAN SLIDES TO 3: take him. Then go WR + WR at 22/27 (A.J. Brown / Nico + Nabers / Flowers) \u2014 your RB1 is already banked.","JEANTY FALLS TO 22: that's an ankle discount, not a red flag \u2014 take him if you can stomach 'questionable' Week 1; otherwise Walker is the safe anchor."],"faab":[{"rule":"Save it for RBs","detail":"Most FAAB league-winners are backup RBs who fall into a starting job (injury or benching). Spend your biggest bids there, not on WRs."},{"rule":"Be aggressive early (Wks 1-4)","detail":"This is when breakout RB/WRs first surface and roles shift. Pounce on real opportunity \u2014 but don't empty the tank."},{"rule":"Cap any single bid","detail":"Rarely go over ~$30-40 on one player unless it's a clear league-winner (a true every-down bell-cow RB)."},{"rule":"Keep dry powder","detail":"Hold ~$25-30 into the fantasy playoff push (Wks 12-14) for an injury replacement or a great matchup streamer."},{"rule":"Win ties with odd bids","detail":"Bid $17 or $23, never round numbers \u2014 you edge out everyone parked on $15 / $20."},{"rule":"Stream K & DST cheap","detail":"Kickers, defenses, and one-week fill-ins are $0-2 bids. Never pay up for those."},{"rule":"Don't panic Week 1","detail":"Let roles settle a week or two before spending on preseason hype or one big game."}]}</script>
+<script>
+/* ============================================================
+   DRAFT CONSOLE — Sleeper live board
+   Read-only. No auth. No backend. Everything below is yours to edit.
+   ============================================================ */
+
+/* ---- 1. TUNABLES ------------------------------------------------------- */
+
+const ROSTER_NEED = { QB:1, RB:2, WR:2, TE:1, DST:1 };  // GovSmart Gridiron starting lineup
+const FLEX_SLOTS  = 1;                            // RB/WR/TE flex
+const BENCH_ROUNDS_FOR_KDST = 1;                  // DEF unlocks in the final round only (no kicker in this league)
+
+const WEIGHTS = {
+  need:      28,   // per unfilled starter at that position
+  flex:       9,   // flex-eligible and flex still open
+  scarcity:  22,   // <=2 left in this player's tier at this position
+  scarcity2: 10,   // <=4 left
+  value:      1.6, // per pick they've fallen past their ADP
+  valueCap:  30,   // cap on the falling-value bonus
+  byeStack:  14,   // penalty per extra starter already on that bye
+  qbSixPt:   12,   // 6-point passing TD format bump
+  kdstEarly:900,   // effectively bans K/DST until the end
+};
+
+const CONFIG = {
+  leagueId: '1389326749023608832',                // GovSmart Gridiron (verified)
+  mySlot: 3, teams: 12, rounds: 12, pollMs: 2000,
+  fastPollMs: 1000, fastWithin: 3,   // poll faster when your pick is close
+};
+
+/* ---- 2. DATA ----------------------------------------------------------- */
+
+const DATA  = JSON.parse(document.getElementById('ranksData').textContent);
+const RANKS = DATA.ranks;
+const PLAN  = DATA.plan;
+const SCEN  = DATA.scenarios;
+
+const SUFFIX = /\b(jr|sr|ii|iii|iv|v)\b/g;
+function norm(s){
+  return String(s||'').toLowerCase().replace(/[.'’-]/g,' ')
+    .replace(SUFFIX,' ').replace(/[^a-z0-9]/g,'');
+}
+const byName = new Map();          // normalized name -> ranked player
+const byDst  = new Map();          // team code      -> ranked D/ST
+for (const p of RANKS){
+  if (p.pos === 'DST') byDst.set(p.team.toUpperCase(), p);
+  else byName.set(norm(p.name), p);
+}
+
+/* Scarcity is POSITION-RELATIVE. QBs start at T5 and TEs at T5 on this board,
+   so "elite" must mean "the best tiers that exist at THAT position", not T1-T2. */
+const POS_BANDS = {};
+for (const pos of ['QB','RB','WR','TE']){
+  const tiers = [...new Set(RANKS.filter(p => p.pos === pos).map(p => p.tier))].sort((a,b)=>a-b);
+  POS_BANDS[pos] = { elite: tiers.slice(0,2), mid: tiers.slice(2,4), late: tiers.slice(4,6) };
+}
+
+/* ---- 3. STATE ---------------------------------------------------------- */
+
+const S = {
+  mode:'idle',            // idle | live | demo | error
+  draftId:null, leagueName:'', pickTimer:0,
+  picks:[],               // [{pickNo, round, slot, name, pos, team, ranked}]
+  taken:new Set(),        // normalized names + DST team codes
+  seen:0, timer:null, demoTimer:null, lastErr:'',
+};
+
+/* ---- 4. SNAKE MATH ----------------------------------------------------- */
+
+const slotOfPick = n => {
+  const t = CONFIG.teams, rd = Math.ceil(n/t), i = n - t*(rd-1);
+  return (rd % 2) ? i : (t - i + 1);
+};
+const roundOfPick = n => Math.ceil(n / CONFIG.teams);
+const pickOfRound = rd => (rd % 2)
+  ? CONFIG.teams*(rd-1) + CONFIG.mySlot
+  : CONFIG.teams*rd - CONFIG.mySlot + 1;
+const myPicks = () => Array.from({length:CONFIG.rounds},(_,i)=>pickOfRound(i+1));
+const nextMyPick = cur => myPicks().find(p => p >= cur) ?? null;
+
+/* ---- 5. DERIVED VIEW --------------------------------------------------- */
+
+function derive(){
+  const curPick  = S.picks.length + 1;
+  const mine     = S.picks.filter(p => p.slot === CONFIG.mySlot);
+  const myNext   = nextMyPick(curPick);
+  const onClock  = slotOfPick(curPick);
+
+  // roster counts + byes from my ranked picks
+  const have = {QB:0,RB:0,WR:0,TE:0,DST:0}, byes = {};
+  for (const p of mine){
+    if (have[p.pos] !== undefined) have[p.pos]++;
+    if (p.ranked?.bye) byes[p.ranked.bye] = (byes[p.ranked.bye]||0) + 1;
+  }
+  const need = {}; let starters = 0;
+  for (const k in ROSTER_NEED){
+    need[k] = Math.max(0, ROSTER_NEED[k] - have[k]);
+    starters += need[k];
+  }
+  const flexOpen = Math.max(0, FLEX_SLOTS -
+    Math.max(0, (have.RB-ROSTER_NEED.RB)) - Math.max(0,(have.WR-ROSTER_NEED.WR)) -
+    Math.max(0, (have.TE-ROSTER_NEED.TE)));
+
+  const avail = RANKS.filter(p =>
+    !S.taken.has(p.pos === 'DST' ? p.team.toUpperCase() : norm(p.name)));
+
+  // tier supply per position
+  const supply = {};
+  for (const pos of ['QB','RB','WR','TE']){
+    const a = avail.filter(p => p.pos === pos), b = POS_BANDS[pos];
+    const inB = band => a.filter(p => band.includes(p.tier)).length;
+    supply[pos] = {
+      elite: inB(b.elite), mid: inB(b.mid), late: inB(b.late),
+      deep:  a.filter(p => ![...b.elite,...b.mid,...b.late].includes(p.tier)).length,
+      total: a.length,
+      eliteTiers: b.elite.map(t=>'T'+t).join('/'),
+    };
+  }
+
+  const rd = roundOfPick(curPick);
+  const scored = avail.map(p => {
+    let s = 200 - p.rank, why = [];
+
+    if (need[p.pos] > 0){
+      s += WEIGHTS.need * Math.min(need[p.pos], 2);
+      why.push(`need ${p.pos}${ROSTER_NEED[p.pos] - need[p.pos] + 1}`);
+    } else if (flexOpen > 0 && ['RB','WR','TE'].includes(p.pos)){
+      s += WEIGHTS.flex; why.push('fills FLEX');
+    }
+
+    const tierLeft = avail.filter(q => q.pos === p.pos && q.tier === p.tier).length;
+    if (tierLeft <= 2){ s += WEIGHTS.scarcity; why.push(`only ${tierLeft} left in T${p.tier} ${p.pos}`); }
+    else if (tierLeft <= 4){ s += WEIGHTS.scarcity2; }
+
+    if (p.adp && p.adp < curPick - 2){
+      const fall = Math.min(curPick - p.adp, WEIGHTS.valueCap / WEIGHTS.value);
+      s += fall * WEIGHTS.value;
+      why.push(`${Math.round(curPick - p.adp)} picks past ADP`);
+    }
+
+    if (p.bye && byes[p.bye]){ s -= WEIGHTS.byeStack * byes[p.bye]; why.push(`bye ${p.bye} stack`); }
+    if (p.pos === 'QB'){ s += WEIGHTS.qbSixPt; why.push('6-pt pass TD'); }
+    if ((p.pos === 'DST' || p.pos === 'K') && rd <= CONFIG.rounds - BENCH_ROUNDS_FOR_KDST){
+      s -= WEIGHTS.kdstEarly;
+    }
+    return {...p, score:s, why};
+  }).sort((a,b) => b.score - a.score);
+
+  return {curPick, rd, onClock, mine, myNext, until: myNext ? myNext - curPick : null,
+          need, have, flexOpen, byes, avail, scored, supply, starters};
+}
+
+/* ---- 6. SLEEPER API ---------------------------------------------------- */
+
+const API = 'https://api.sleeper.app/v1';
+async function get(path){
+  const r = await fetch(API + path, {cache:'no-store'});
+  if (!r.ok) throw new Error(path + ' -> HTTP ' + r.status);
+  return r.json();
+}
+
+async function resolveDraft(id){
+  // Accept a league ID or a draft ID; figure out which.
+  try{
+    const lg = await get(`/league/${id}`);
+    if (lg && lg.league_id){
+      const drafts = await get(`/league/${id}/drafts`);
+      if (!drafts || !drafts.length) throw new Error('That league has no draft yet.');
+      drafts.sort((a,b) => (b.start_time||0) - (a.start_time||0));
+      return {draft: drafts[0], leagueName: lg.name || 'League'};
+    }
+  }catch(e){ /* fall through and try it as a draft id */ }
+  const d = await get(`/draft/${id}`);
+  return {draft: d, leagueName: d?.metadata?.name || 'Draft'};
+}
+
+function applyDraftSettings(d){
+  S.draftId = d.draft_id;
+  const st = d.settings || {};
+  if (st.teams)  CONFIG.teams  = st.teams;
+  if (st.rounds) CONFIG.rounds = st.rounds;
+  S.pickTimer = st.pick_timer || 0;
+}
+
+function ingest(raw){
+  S.picks = raw.map(p => {
+    const m = p.metadata || {};
+    const pos  = (m.position || '').toUpperCase();
+    const team = (m.team || '').toUpperCase();
+    const name = [m.first_name, m.last_name].filter(Boolean).join(' ').trim()
+                 || ('Player ' + p.player_id);
+    const ranked = (pos === 'DEF' || pos === 'DST')
+      ? byDst.get(team) : byName.get(norm(name));
+    return {
+      pickNo: p.pick_no, round: p.round,
+      slot: p.draft_slot || slotOfPick(p.pick_no),
+      name, pos: ranked?.pos || (pos === 'DEF' ? 'DST' : pos), team, ranked,
+    };
+  }).sort((a,b) => a.pickNo - b.pickNo);
+
+  S.taken = new Set();
+  for (const p of S.picks){
+    if (p.ranked) S.taken.add(p.ranked.pos === 'DST'
+      ? p.ranked.team.toUpperCase() : norm(p.ranked.name));
+    else S.taken.add(norm(p.name));
+  }
+}
+
+async function tick(){
+  if (!S.draftId) return;
+  try{
+    const raw = await get(`/draft/${S.draftId}/picks`);
+    const changed = raw.length !== S.picks.length;
+    if (changed){ ingest(raw); render(true); }
+    setStatus('live', `live · ${S.picks.length} picks in`);
+    S.lastErr = '';
+    schedule();
+  }catch(e){
+    S.lastErr = e.message;
+    setStatus('err', 'retrying — ' + e.message);
+    S.timer = setTimeout(tick, 5000);          // back off, keep trying
+  }
+}
+
+function schedule(){
+  clearTimeout(S.timer);
+  const v = derive();
+  const fast = v.until !== null && v.until <= CONFIG.fastWithin;
+  const ms = fast ? CONFIG.fastPollMs : CONFIG.pollMs;
+  document.getElementById('rateTag').textContent = `polling ${ms}ms${fast ? ' (turbo)' : ''}`;
+  S.timer = setTimeout(tick, ms);
+}
+
+async function connect(){
+  const id = (document.getElementById('leagueId').value || '').trim();
+  if (!id){ setStatus('err','enter a league or draft ID'); show('setup'); return; }
+  stopDemo(); clearTimeout(S.timer);
+  CONFIG.leagueId = id;
+  CONFIG.mySlot = +document.getElementById('mySlot').value || 3;
+  CONFIG.teams  = +document.getElementById('teams').value  || 12;
+  CONFIG.pollMs = +document.getElementById('pollMs').value || 2000;
+  save();
+  setStatus('idle','connecting…');
+  try{
+    const {draft, leagueName} = await resolveDraft(id);
+    applyDraftSettings(draft);
+    S.leagueName = leagueName; S.mode = 'live';
+    document.getElementById('teams').value = CONFIG.teams;
+    const tag = document.getElementById('leagueTag');
+    tag.hidden = false;
+    tag.textContent = `${leagueName} · ${CONFIG.teams}-team · ${CONFIG.rounds} rds · slot ${CONFIG.mySlot}`;
+    document.getElementById('rateTag').hidden = false;
+    document.getElementById('setup').hidden = true;
+    await tick();
+  }catch(e){
+    setStatus('err', e.message);
+    show('setup');
+  }
+}
+
+/* ---- 7. DEMO SIMULATOR (works with no league ID) ----------------------- */
+
+let demoSeed = 20260904;
+const rnd = () => (demoSeed = (demoSeed*1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+
+function stopDemo(){ clearInterval(S.demoTimer); S.demoTimer = null; }
+
+function startDemo(){
+  clearTimeout(S.timer); stopDemo();
+  S.mode='demo'; S.draftId=null; S.picks=[]; S.taken=new Set(); S.seen=0;
+  CONFIG.teams = +document.getElementById('teams').value || 12;
+  CONFIG.mySlot = +document.getElementById('mySlot').value || 3;
+  CONFIG.rounds = 15;
+  document.getElementById('setup').hidden = true;
+  const tag = document.getElementById('leagueTag');
+  tag.hidden = false;
+  tag.textContent = `DEMO · ${CONFIG.teams}-team · slot ${CONFIG.mySlot}`;
+  document.getElementById('rateTag').hidden = true;
+  setStatus('demo','demo draft running');
+  render(false);
+  S.demoTimer = setInterval(demoStep, 1100);
+}
+
+function demoStep(){
+  const v = derive();
+  if (v.curPick > CONFIG.teams * CONFIG.rounds || !v.avail.length){
+    stopDemo(); setStatus('demo','demo complete'); return;
+  }
+  if (v.onClock === CONFIG.mySlot){         // pause on your pick so you can see it
+    setStatus('demo','demo paused — your pick. Click a name below or wait.');
+    if (!S._paused){ S._paused = true; render(true); setTimeout(()=>{S._paused=false;},2600); return; }
+  }
+  // other teams roughly follow ADP with noise; you follow our board
+  const pool = v.avail.filter(p => p.pos !== 'DST' || v.rd >= CONFIG.rounds-1);
+  let pick;
+  if (v.onClock === CONFIG.mySlot){ pick = v.scored[0]; }
+  else {
+    const top = pool.slice(0, 6);
+    pick = top[Math.floor(rnd()*Math.min(top.length,4))] || pool[0];
+  }
+  if (!pick) { stopDemo(); return; }
+  const n = v.curPick;
+  S.picks.push({pickNo:n, round:roundOfPick(n), slot:slotOfPick(n),
+                name:pick.name, pos:pick.pos, team:pick.team, ranked:pick});
+  S.taken.add(pick.pos === 'DST' ? pick.team.toUpperCase() : norm(pick.name));
+  render(true);
+}
+
+/* ---- 8. RENDER --------------------------------------------------------- */
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function setStatus(kind, txt){
+  S.mode = kind === 'err' ? 'error' : (kind === 'demo' ? 'demo' : S.mode);
+  $('dot').className = 'dot' + (kind==='live'?' live':kind==='demo'?' demo':kind==='err'?' err':'');
+  $('statusTx').textContent = txt;
+}
+function show(id){ $(id).hidden = false; }
+
+function render(animate){
+  const v = derive();
+
+  // clock
+  $('cPick').textContent  = v.curPick > CONFIG.teams*CONFIG.rounds ? 'done' : '#'+v.curPick;
+  $('cRound').textContent = v.rd;
+  $('cUntil').textContent = v.until === null ? '—' : (v.until === 0 ? 'NOW' : v.until);
+  $('cNext').textContent  = v.myNext ? '#'+v.myNext+' (rd '+roundOfPick(v.myNext)+')' : '—';
+  $('cWho').textContent   = v.onClock === CONFIG.mySlot ? 'YOU' : 'slot '+v.onClock;
+  const clock = $('clock');
+  clock.className = v.until === 0 ? 'mine' : (v.until !== null && v.until <= 2 ? 'soon' : '');
+  $('turnMsg').textContent = v.until === 0 ? "YOU'RE ON THE CLOCK"
+    : (v.until !== null && v.until <= 2 ? `get ready — ${v.until} away` : '');
+  $('turnMsg').style.color = v.until === 0 ? 'var(--good)' : 'var(--warn)';
+
+  // best available
+  $('baBody').innerHTML = v.scored.slice(0,8).map((p,i) => `
+    <tr class="${i===0?'top':''}">
+      <td class="mono meta">${p.rank}</td>
+      <td><div class="pname">${esc(p.name)}</div>
+          ${p.why.length?`<div class="why">${i===0?'<b>TAKE HIM</b> · ':''}${esc(p.why.slice(0,3).join(' · '))}</div>`:''}
+          ${p.notes?`<div class="why" style="color:var(--faint)">${esc(p.notes)}</div>`:''}</td>
+      <td><span class="pos ${p.pos}">${p.pos}</span></td>
+      <td class="mono meta">${p.bye||'—'}</td>
+      <td class="mono num meta">${p.adp ?? '—'}</td>
+      <td><span class="tierchip">T${p.tier}</span></td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">Board exhausted — our top 120 are all gone.<br>Rounds 11-12 are past our rankings: take a DEFENSE in the final round, and for the other pick grab the best upside left in Sleeper\'s own list (a backup RB attached to a starter is the best swing).</td></tr>';
+  $('baSub').textContent = `${v.avail.length} of ${RANKS.length} left`;
+
+  // needs
+  $('needs').innerHTML = ['QB','RB','WR','TE','DST'].map(pos => {
+    const gap = v.need[pos];
+    return `<div><div class="p pos ${pos}" style="background:none;padding:0">${pos}</div>
+      <div class="c ${gap?'gap':'ok'}">${v.have[pos]}<span style="font-size:11px;color:var(--faint)">/${ROSTER_NEED[pos]}</span></div>
+      <div class="n">${gap?('need '+gap):'set'}</div></div>`;
+  }).join('');
+
+  // alerts
+  const al = [];
+  if (v.until === 0) al.push(['good', `Your pick. Board says <b>${esc(v.scored[0]?.name||'—')}</b>.`]);
+  for (const pos of ['RB','WR','TE','QB']){
+    const s = v.supply[pos], starving = v.need[pos] > 0;
+    if (s.elite === 0 && s.mid === 0 && s.total > 0){
+      if (starving) al.push(['bad', `<b>${pos} top tiers exhausted</b> and you still need ${v.need[pos]} — take best available or pivot.`]);
+    } else if (s.elite === 0 && s.mid > 0 && s.mid <= 3){
+      al.push([starving?'bad':'warn', `Top ${pos} gone — <b>${s.mid}</b> in the next tier${starving?`, and you need ${v.need[pos]}`:''}.`]);
+    } else if (s.elite > 0 && s.elite <= 2){
+      al.push([starving?'bad':'warn', `Only <b>${s.elite}</b> top-tier (${s.eliteTiers}) ${pos} left — run risk${starving?', and it is a need':''}.`]);
+    }
+  }
+  const stacked = Object.entries(v.byes).filter(([,c]) => c >= 3);
+  for (const [wk,c] of stacked) al.push(['bad', `<b>${c}</b> of your starters share bye week <b>${wk}</b>.`]);
+  if (v.starters === 0 && v.mine.length) al.push(['good','Starting lineup is full — swing for upside.']);
+  $('alerts').innerHTML = al.slice(0,4).map(([k,t]) => `<div class="alert ${k}">${t}</div>`).join('');
+
+  // supply bars
+  $('supply').innerHTML = ['RB','WR','QB','TE'].map(pos => {
+    const s = v.supply[pos], t = Math.max(s.total,1);
+    const seg = (n,c) => n ? `<i style="width:${(n/t*100).toFixed(1)}%;background:${c}"></i>` : '';
+    return `<div class="srow"><span class="lbl pos ${pos}" style="background:none;padding:0">${pos}</span>
+      <span class="bar">${seg(s.elite,'var(--gold)')}${seg(s.mid,'var(--good)')}${seg(s.late,'var(--wr)')}${seg(s.deep,'var(--line)')}</span>
+      <span class="cnt mono">${s.elite}<span style="color:var(--faint)">e</span> ${s.mid}<span style="color:var(--faint)">m</span> · ${s.total}</span></div>`;
+  }).join('');
+
+  // roster
+  $('roster').innerHTML = v.mine.length ? v.mine.map(p => `
+    <div class="ritem"><span class="rd mono">R${p.round}</span>
+      <span class="pos ${p.pos||'K'}">${p.pos||'?'}</span>
+      <span class="pname">${esc(p.name)}</span>
+      <span class="meta">${p.ranked?.bye?('bye '+p.ranked.bye):''}</span></div>`).join('')
+    : '<div class="empty">Nothing drafted yet.</div>';
+  $('rosterSub').textContent = v.mine.length ? `${v.mine.length} picks` : '';
+
+  // feed
+  const recent = S.picks.slice().reverse().slice(0,40);
+  $('feed').innerHTML = recent.length ? recent.map((p,i) => `
+    <div class="fitem ${p.slot===CONFIG.mySlot?'me':''} ${animate&&i===0?'new':''}">
+      <span class="pk mono">${p.pickNo}.${String(p.slot).padStart(2,'0')}</span>
+      <span class="pos ${p.pos||'K'}">${p.pos||'?'}</span>
+      <span class="pname">${esc(p.name)}</span>
+      <span class="meta">${esc(p.team||'')}${p.ranked?'':' · off board'}</span>
+    </div>`).join('') : '<div class="empty">No picks yet.</div>';
+  $('feedSub').textContent = S.picks.length ? `${S.picks.length} made` : '';
+
+  // plan
+  const rdForPlan = v.myNext ? roundOfPick(v.myNext) : CONFIG.rounds;
+  const row = PLAN.find(x => x.rd === rdForPlan);
+  let html = row ? `<div class="planline"><b>Round ${row.rd} · pick #${row.pick}</b> — ${esc(row.target)}
+      <div class="why">Fallbacks: ${esc(row.fallback)}</div>
+      <div class="why" style="color:var(--dim)">${esc(row.note)}</div></div>` : '';
+  if (rdForPlan >= CONFIG.rounds) html = `<div class="planline"><b>Round ${CONFIG.rounds} — final pick.</b> Take a DEFENSE. There is no kicker slot in this league.</div>` + html;
+  if (rdForPlan <= 3) html += SCEN.map(s => `<div class="planline why">${esc(s)}</div>`).join('');
+  $('planBox').innerHTML = html || '<div class="empty">Best available.</div>';
+
+  if (animate && v.until === 0 && S.seen !== v.curPick){ S.seen = v.curPick; beep(); }
+}
+
+function beep(){
+  try{
+    const C = window.AudioContext || window.webkitAudioContext; if(!C) return;
+    const c = new C(), o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination); o.frequency.value = 880; o.type='sine';
+    g.gain.setValueAtTime(.001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.25,c.currentTime+.02);
+    g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.5);
+    o.start(); o.stop(c.currentTime+.5);
+  }catch(e){}
+}
+
+/* ---- 9. PERSISTENCE + WIRING ------------------------------------------ */
+
+function save(){
+  try{ localStorage.setItem('draftConsole', JSON.stringify(
+    {leagueId:CONFIG.leagueId, mySlot:CONFIG.mySlot, teams:CONFIG.teams, pollMs:CONFIG.pollMs}));
+  }catch(e){}
+}
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem('draftConsole')||'{}');
+    if (s.leagueId) $('leagueId').value = s.leagueId;
+    if (s.mySlot)   $('mySlot').value   = s.mySlot;
+    if (s.teams)    $('teams').value    = s.teams;
+    if (s.pollMs)   $('pollMs').value   = s.pollMs;
+    Object.assign(CONFIG, s);
+  }catch(e){}
+}
+
+$('setupBtn').onclick  = () => { const s = $('setup'); s.hidden = !s.hidden; };
+$('saveBtn').onclick   = connect;
+$('connectBtn').onclick= connect;
+$('demoBtn').onclick   = startDemo;
+$('leagueId').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
+
+load();
+setStatus('idle', 'not connected — enter a league ID, or run the demo');
+render(false);
+window.DRAFT = {S, CONFIG, WEIGHTS, derive, render, startDemo, connect};  // console access
+
+</script>
+</body>
+</html>
