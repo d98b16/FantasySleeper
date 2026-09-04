@@ -55,8 +55,8 @@ play-by-play), caches the raw files in `data/raw/`, and:
    6-point passing TDs, −2 INT, confirmed live against the Sleeper API.
 2. **Weights opportunity over production.** Realised TDs are replaced with
    expected TDs from red-zone and inside-the-10 opportunity, then blended 55/45
-   with a role-implied points-per-game fit on snap share, target share, air-yards
-   share and red-zone volume. A lucky TD year does not survive this.
+   with a role-implied points-per-game fit (leave-one-out) on snap share, target
+   share, air-yards share and red-zone volume. A lucky TD year does not survive.
 3. **Values against this league's real roster shape** — 12 teams, 8 starters
    including a DEF, 12 rounds, 4 bench. Replacement is QB13 / RB31 / WR30 / TE14.
 4. **Diffs the result against the board's ADP.** That delta is the edge.

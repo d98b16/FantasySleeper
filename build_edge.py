@@ -238,9 +238,10 @@ def main():
     #   1. pts_xtd_pg  -- last year's points per game with lucky/unlucky TDs
     #                     regressed out (see xTD above).
     #   2. role_pg     -- points per game IMPLIED BY ROLE ALONE. Fit within each
-    #                     position by least squares on opportunity features only;
-    #                     a player's own scoring never enters his own prediction
-    #                     except through the shared league-wide coefficients.
+    #                     position by least squares on opportunity features only,
+    #                     LEAVE-ONE-OUT, so a player's own scoring never enters his
+    #                     own prediction at all. The R2 printed below is therefore
+    #                     out-of-sample.
     # The blend leans on role (55/45), so a player whose production outran his
     # role gets pulled down and a player buried by his own offense gets pulled up.
     FEATURES = {
@@ -274,9 +275,30 @@ def main():
         y = agg.loc[fit, "pts_xtd_pg"].values
         beta, *_ = np.linalg.lstsq(X, y, rcond=None)
         Xall = np.column_stack([agg.loc[m, f].values for f in feats] + [np.ones(m.sum())])
-        agg.loc[m, "role_pg"] = Xall @ beta
-        r2 = 1 - ((y - X @ beta) ** 2).sum() / max(((y - y.mean()) ** 2).sum(), 1e-9)
-        print(f"  role model {pos}: n={int(fit.sum())}  R2={r2:.2f}")
+        pred = Xall @ beta
+
+        # LEAVE-ONE-OUT. A player in the fit would otherwise be predicted partly
+        # by coefficients his own scoring helped set. The effect is small at these
+        # sample sizes (measured: ~0.5% of the prediction for RB/WR/TE, ~1.7% for
+        # QB where n is only ~43) but it costs nothing to remove entirely, and it
+        # makes the reported R2 an out-of-sample number instead of an in-sample
+        # one that would overstate how much this really explains.
+        idx = np.flatnonzero(fit.values)
+        pos_rows = np.flatnonzero(m.values)
+        where = {r: i for i, r in enumerate(pos_rows)}
+        loo = pred.copy()
+        for i, row in enumerate(idx):
+            keep = np.ones(len(idx), bool); keep[i] = False
+            bi, *_ = np.linalg.lstsq(X[keep], y[keep], rcond=None)
+            loo[where[row]] = X[i] @ bi
+        agg.loc[m, "role_pg"] = loo
+
+        yhat_loo = np.array([loo[where[r]] for r in idx])
+        ss = max(((y - y.mean()) ** 2).sum(), 1e-9)
+        r2_loo = 1 - ((y - yhat_loo) ** 2).sum() / ss
+        r2_in  = 1 - ((y - X @ beta) ** 2).sum() / ss
+        print(f"  role model {pos}: n={int(fit.sum())}  R2(leave-one-out)={r2_loo:.2f} "
+              f"(in-sample {r2_in:.2f})")
     agg["role_pg"] = agg.role_pg.fillna(agg.pts_xtd_pg).clip(lower=0)
 
     W_ROLE = 0.55                      # opportunity weighted OVER raw production

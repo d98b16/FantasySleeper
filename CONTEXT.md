@@ -122,9 +122,11 @@ Rate limit ~1000 req/min. The console polls at 2000ms, 1000ms when the pick is n
   and are excluded outright; 25 more had a 2025 role too small to describe their
   2026 one (low snaps or few games) and are shown but explicitly not claimed as
   edges. Only 86 of 129 carry a trusted edge.
-- In-sample R^2 on the role models is high (0.85-0.99) because opportunity really
-  does explain scoring *within* a season. That is not the same as predictive
-  accuracy for 2026, and should not be read as such.
+- The role models are fit leave-one-out, so a player's own scoring never sets the
+  coefficients used to predict him. Out-of-sample R^2 is 0.80 (QB, n=43) / 0.98
+  (RB) / 0.94 (WR) / 0.97 (TE). That is high because opportunity really does
+  explain scoring *within* a season — it is NOT evidence the model predicts 2026.
+  Roles change; that is what the model cannot see.
 - Rankings snapshot is from FantasyFootballCalculator half-PPR ADP, refreshed Aug 27
   and again on draft morning. ADP past ~#60 is expert-consensus, not live market.
 - Position-relative tier bands: QB/TE "elite" = T5/T6 because those positions have no
