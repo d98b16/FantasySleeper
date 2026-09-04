@@ -142,14 +142,29 @@ def pbp_features(season):
         return p[(p.yardline_100 > lo) & (p.yardline_100 <= hi)]
 
     def touches(fr, tag):
-        r = fr[fr.rush_attempt == 1].groupby("rusher_player_id").size().rename(f"{tag}_car")
-        t = fr[fr.pass_attempt == 1].groupby("receiver_player_id").size().rename(f"{tag}_tgt")
-        return pd.concat([r, t], axis=1).fillna(0)
+        """Opportunities AND touchdowns per zone. The TD counts are what let the
+        expected-TD model use directly measured conversion rates per zone and
+        position instead of solving for them, which was numerically fragile."""
+        r  = fr[fr.rush_attempt == 1].groupby("rusher_player_id").size().rename(f"{tag}_car")
+        t  = fr[fr.pass_attempt == 1].groupby("receiver_player_id").size().rename(f"{tag}_tgt")
+        rd = (fr[(fr.rush_attempt == 1) & (fr.rush_touchdown == 1)]
+              .groupby("rusher_player_id").size().rename(f"{tag}_car_td"))
+        td = (fr[(fr.pass_attempt == 1) & (fr.pass_touchdown == 1)]
+              .groupby("receiver_player_id").size().rename(f"{tag}_tgt_td"))
+        return pd.concat([r, t, rd, td], axis=1).fillna(0)
 
-    i5  = touches(zone(0, 5),   "i5")
-    i10 = touches(zone(0, 10),  "i10")
-    rz  = touches(zone(0, 20),  "rz")
-    opp = i5.join(i10, how="outer").join(rz, how="outer").fillna(0)
+    # three disjoint bands so opportunities are never double counted
+    i5   = touches(zone(0, 5),    "i5")
+    ring = touches(zone(5, 10),   "ring")     # 6-10 yard line
+    mid  = touches(zone(10, 20),  "mid")      # 11-20
+    out  = touches(zone(20, 100), "out")
+    opp = (i5.join(ring, how="outer").join(mid, how="outer")
+             .join(out, how="outer").fillna(0))
+    # convenience roll-ups used everywhere downstream
+    opp["i10_car"] = opp.i5_car + opp.ring_car
+    opp["i10_tgt"] = opp.i5_tgt + opp.ring_tgt
+    opp["rz_car"]  = opp.i10_car + opp.mid_car
+    opp["rz_tgt"]  = opp.i10_tgt + opp.mid_tgt
     opp.index.name = "player_id"
     opp = opp.reset_index()
 
@@ -320,10 +335,19 @@ def finalize(panel):
 
     bd = pd.to_datetime(panel.get("birth_date"), errors="coerce")
     panel["age"] = panel.season - bd.dt.year + (bd.dt.month > 8).astype(float) * -1
-    entry = panel.get("rookie_year")
-    if entry is None:
-        entry = panel.get("entry_year")
-    panel["exp"] = panel.season - pd.to_numeric(entry, errors="coerce")
+    # Experience: prefer the explicit rookie/entry year; fall back to draft year;
+    # last resort, the first season we observe him in the panel. players.parquet
+    # does not always carry rookie_year, and a 100%-null feature is worse than a
+    # noisy one because it silently drops out of the model.
+    entry = None
+    for c in ("rookie_year", "entry_year", "draft_year"):
+        col = panel.get(c)
+        if col is not None and pd.to_numeric(col, errors="coerce").notna().any():
+            entry = pd.to_numeric(col, errors="coerce") if entry is None else \
+                    entry.fillna(pd.to_numeric(col, errors="coerce"))
+    first_seen = panel.groupby("player_id").season.transform("min")
+    entry = first_seen if entry is None else entry.fillna(first_seen)
+    panel["exp"] = panel.season - entry
     panel["draft_round"] = panel.dr_round.fillna(panel.get("draft_round"))
     panel["draft_pick"]  = panel.dr_pick.fillna(panel.get("draft_pick"))
     panel["undrafted"] = panel.draft_pick.isna().astype(int)
