@@ -107,10 +107,29 @@ border-left:3px solid var(--line);padding:9px 12px;border-radius:0 6px 6px 0}
 .note b{color:var(--dim)}
 footer{margin-top:30px;font-size:11px;color:var(--faint);text-align:center;line-height:1.7;
 border-top:1px solid var(--line);padding-top:12px}
+/* Any table can outgrow a phone. Scroll it inside its own box so the PAGE never
+   scrolls sideways -- a horizontally sliding page is unusable on a 90-second
+   clock. */
+#board,#byes{overflow-x:auto;-webkit-overflow-scrolling:touch}
+#board table,#byes table{min-width:100%}
 @media(max-width:620px){
   body{padding:0 10px 40px} #bar{margin:10px -10px 0;padding-left:10px;padding-right:10px}
   .dnd .nm{font-size:24px} .hc{grid-template-columns:1fr} .cols{grid-template-columns:1fr}
   td{font-size:13px} .hint{display:none} .nmc{font-size:14px}
+  /* Team and tier are the two columns worth losing on a phone: position is
+     already colour-coded next to the name, and tier lives on the live board. */
+  .sec{display:none}
+  /* ADP's decimal and the market RANK are the same information; the rank is the
+     one that lines up with our column and with delta, so the decimal goes. */
+  .sec2{display:none}
+  /* Let the name column wrap instead of forcing the table wider than the phone.
+     A sideways-scrolling table is not scannable on a 90-second clock. */
+  #board table{table-layout:fixed;width:100%}
+  #board td:first-child,#board th:first-child{white-space:normal;word-break:break-word}
+  #board td:not(:first-child),#board th:not(:first-child){white-space:nowrap}
+  .tag{white-space:normal;display:inline-block;margin-top:2px}
+  th,td{padding:6px 5px}
+  .tag{font-size:8.5px;padding:1px 3px;margin-left:3px}
 }
 """
 
@@ -186,9 +205,9 @@ function renderBoard(list){
     var ax = a.our==null ? (a.mkt||1e9) : a.our, bx = b.our==null ? (b.mkt||1e9) : b.our;
     return ax-bx;
   });
-  var head = '<tr><th>Player</th><th>Pos</th><th>Tm</th><th>Bye</th>';
-  if(v!=='market') head += '<th class=num>Ours</th><th class=num>Tier</th>';
-  if(v!=='ours')   head += '<th class=num>ADP</th><th class=num>Mkt</th>';
+  var head = '<tr><th>Player</th><th>Pos</th><th class=sec>Tm</th><th>Bye</th>';
+  if(v!=='market') head += '<th class=num>Ours</th><th class="num sec">Tier</th>';
+  if(v!=='ours')   head += '<th class="num sec2">ADP</th><th class=num>Mkt</th>';
   if(v==='both')   head += '<th class=num>Delta</th>';
   head += '</tr>';
   if(!rows.length)
@@ -200,10 +219,10 @@ function renderBoard(list){
     if(p.mkt==null) tags += '<span class="tag nb">NOT ON MARKET</span>';
     if(p.rt) tags += '<span class="tag rk">ROOKIE</span>';
     var r = '<tr><td class=nmc>'+esc(p.n)+tags+'</td><td>'+posTag(p.p)+'</td>'+
-            '<td class=dim>'+esc(p.t||'—')+'</td><td class=dim>'+(p.by||'—')+'</td>';
+            '<td class="dim sec">'+esc(p.t||'—')+'</td><td class=dim>'+(p.by||'—')+'</td>';
     if(v!=='market') r += '<td class=num>'+(p.our==null?'<span class=dim>&mdash;</span>':'#'+p.our)+'</td>'+
-                          '<td class="num dim">'+(p.ti==null?'&mdash;':'T'+p.ti)+'</td>';
-    if(v!=='ours')   r += '<td class=num>'+(p.adp==null?'<span class=dim>&mdash;</span>':p.adp.toFixed(1))+'</td>'+
+                          '<td class="num dim sec">'+(p.ti==null?'&mdash;':'T'+p.ti)+'</td>';
+    if(v!=='ours')   r += '<td class="num sec2">'+(p.adp==null?'<span class=dim>&mdash;</span>':p.adp.toFixed(1))+'</td>'+
                           '<td class="num dim">'+(p.mkt==null?'&mdash;':'#'+p.mkt)+'</td>';
     if(v==='both')   r += '<td class=num>'+dCell(p.d)+'</td>';
     return r+'</tr>';

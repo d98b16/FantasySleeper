@@ -278,6 +278,31 @@ const T = (n, v) => { checks[n] = !!v; };
   T('a malformed hash is ignored, not fatal',
     bad.pos.join() === 'RB' && bad.view === 'both' && bad.rows >= 1);
 
+  // ---------- phone layout ----------
+  // The page must never scroll sideways: on a 90-second clock a horizontally
+  // sliding page is unusable. The board sheds Tm/Tier/ADP under 620px and the
+  // name column wraps rather than forcing the table wider than the screen.
+  for (const w of [360, 390, 414]) {
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.waitForTimeout(150);
+    const m = await page.evaluate(() => {
+      const t = document.querySelector('#board table');
+      return { page: document.documentElement.scrollWidth <= window.innerWidth,
+               fits: t.scrollWidth <= t.parentElement.clientWidth + 1,
+               cols: [...document.querySelectorAll('#board table tr:first-child th')]
+                       .filter(e => e.offsetParent !== null).length };
+    });
+    T(`no horizontal page scroll at ${w}px`, m.page);
+    T(`board table fits the screen at ${w}px`, m.fits);
+    T(`board sheds secondary columns at ${w}px`, m.cols === 6);
+  }
+  await page.setViewportSize({ width: 1200, height: 1400 });
+  await page.waitForTimeout(150);
+  T('desktop keeps all nine columns',
+    await page.evaluate(() =>
+      [...document.querySelectorAll('#board table tr:first-child th')]
+        .filter(e => e.offsetParent !== null).length === 9));
+
   T('no JS errors', errors.length === 0);
 
   let fail = 0;
