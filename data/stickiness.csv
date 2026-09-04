@@ -58,6 +58,6 @@ i10_touch_pg,inside-10 touches / g,WR,1355,0.4803,0.4686,0.2196,0.4844,half repe
 catch_rate,catch rate,WR,896,0.4765,0.4655,0.2167,0.4689,half repeats
 ypr,yards per reception,WR,858,0.4668,0.4603,0.2118,0.4730,half repeats
 yac_per_rec,YAC per reception,WR,858,0.4607,0.4708,0.2217,0.4183,half repeats
-avail,availability,WR,2129,0.4177,0.3954,0.1563,0.3966,half repeats
+avail,availability,WR,2129,0.4179,0.3955,0.1564,0.3970,half repeats
 games,games played,WR,2129,0.4170,0.3933,0.1547,0.3970,half repeats
 td_oe_pg,TDs over expected / g,WR,1355,0.0878,0.0909,0.0083,0.0826,noise

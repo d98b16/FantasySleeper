@@ -35,57 +35,66 @@ Two consequences that drive strategy:
 2. **12 rounds / 4 bench / DEF required** — only 12 roster spots total. There is no
    room for dead weight, and a defense must be taken.
 
-## The 6-point thesis, measured (2025 nflverse, `build_edge.py`)
+## The 6-point thesis, measured on 14 seasons (`questions.py`)
 
-The original claim here was "every QB is structurally underpriced — take a top-6 QB
-by rounds 5-8". The data does not support the second half of that.
+Measured across 2012-2025, 126 (season x replacement-rank x tier) cells:
 
-The rule lifts **every** QB, the streamer included:
+| tier | median gain | 95% CI | seasons negative |
+|---|---|---|---|
+| top-6 QB | **+13.4 pts/season** | 11.2 - 17.7 | 0 of 14 |
+| top-3 QB | +19.6 | 15.1 - 24.9 | 0 of 14 |
+| QB1 | **+24.8** | 16.4 - 33.3 | 1 of 14 |
 
-| | 4-pt (public ADP) | 6-pt (this league) |
-|---|---|---|
-| Replacement QB (QB13) | 17.42 pts/g | 20.87 pts/g |
-| Top-6 QB average | 20.67 pts/g | 24.54 pts/g |
-| **Elite QB's advantage** | **3.26 pts/g** | **3.67 pts/g** |
+The rule lifts **every** QB, replacement included, so what matters is the change in
+the elite QB's *advantage* over a streamer. That advantage is real, consistently
+positive, and small: under a point a game.
 
-So the elite QB's edge over a streamer grows by **0.41 pts/game**. Repeating the whole
-measurement across **two seasons (2024 and 2025) x three replacement ranks (QB11/13/15)**
-puts a top-6 QB's gain at **7-19 points across a full season, median 12.5** — at most
-about a point a game.
+**This corrects the v2 note in two directions.** v2 measured on two seasons and (a)
+put the top-6 gain at 7-19 with median 12.5 -- close, and now tightened; (b) called
+QB1 "too noisy to plan around" at -3.8 to +34.4. On 14 seasons QB1 is the *largest*
+of the three tiers and reliably positive. The two-season sample was too small.
 
-The *single best* QB is a different and much noisier question, because it rides one
-player's passing-TD total: across the same six cells it ranges **-3.8 to +34.4, median
-+16.1**. An earlier version of this file claimed it was "~0 or negative" — that was
-measured on 2025 alone and is **wrong**; 2024 gives +15 to +34 at every rank. A number
-that swings 38 points between two seasons is not something to plan a draft around in
-either direction.
+For scale, realised value over replacement at the top of each position over the same
+14 seasons: **RB 203, WR 143, QB 140, TE 107**. QB is not worthless -- but you cannot
+know in advance which QB finishes first, and QB has the highest variance relative to
+its size. **Wait on QB. It is a real edge, not a rounding error.**
 
-Note what the "wait on QB" recommendation actually rests on: **not** this gain, but the
-value-over-replacement scale below. Even the top of the QB1 range (~34 pts) is small
-next to an RB1 worth ~228.
+## The multi-season model, and what it found (`FINDINGS.md`, `BACKTEST.md`)
 
-For scale, value over replacement across a season (computed by `build_edge.py`, and the
-actual basis for the recommendation): best QB ~53 pts, best TE ~113, best WR ~117,
-**best RB ~228**. **Wait on QB until round 9.**
+Built on 14 seasons of nflverse (2012-2025) and 16 of historical ADP. Walk-forward
+validated: train on every season before T, predict T, for T in 2016-2025.
 
-Second: **rushing TDs are already 6 points in every format**, so the rule rewards
-*passing-TD volume* and nothing else. The gain is exactly `2 x passing TDs`.
+**The model does not beat ADP.** Pooled across positions, points per game:
 
-    2025:  Stafford +92  Goff +68  Maye +62  Prescott +60  |  Allen +50  Hurts +50  Lamar +42
-    2024:  Burrow  +86  Mayfield +82  Jackson +82  Goff +74  |  Allen +56  Daniels +50  Hurts +36
+    ADP (the market)              2.621 MAE      -
+    ADP + ridge residual          2.625        -0.14%
+    model, with ADP as a feature  2.852        -8.80%
+    model, stats only             3.040       -15.99%
+    last year's rate              3.280       -25.16%
 
-The obvious reading — "so fade the dual-threats" — is **too strong, and I am not
-claiming it**. The correlation between rushing-TD share and 6-pt gain among the top 20
-gainers is only -0.23 (2024) and -0.18 (2025), and Lamar Jackson was the *third* biggest
-gainer of 2024 on 41 passing TDs. The label is a bad proxy. **Look at the QB's actual
-passing-TD total, not his rushing reputation.** The previous note in this file said
-dual-threats gain the most, which is backwards.
+Six model families, four positions, ten held-out seasons, zero wins. The best result
+is a tie, reached by a regularised model learning to predict a residual of ~zero.
 
-**Confidence.** High on the structure: that the rule lifts replacement as much as elite,
-and that the gain equals 2 x passing TDs, is arithmetic and cannot fail to hold. Medium
-on the magnitude: 7-19 pts/season is a real range, not a point estimate, and the spread
-comes from which replacement rank you believe. Low on any individual 2026 projection —
-these are 2025 and 2024 totals and QBs do not repeat TD counts.
+**Seven edge hypotheses were pre-registered and tested with draft price controlled.
+One survived**: 9 or fewer games last season predicts finishing ~3 positional ranks
+below ADP (p=0.0011, survives Bonferroni). Every other raw effect collapsed once
+price was controlled -- including **TD-luck regression, which v2 shipped as its edge
+column and which is worth +0.2 ranks at p=0.80**. The market had already priced it.
+
+Consequence for the console: the board order stays ADP. What the model contributes
+is the **outcome range** -- floor, ceiling, bust probability -- which a single ADP
+number cannot provide.
+
+## Stickiness: what repeats year to year (`data/stickiness.csv`)
+
+Slope of next season on this season = the fraction of a player's edge that survives.
+
+    volume      carries/g 0.76 RB   targets/g 0.79 WR   snap share 0.64-0.71
+    efficiency  YPC 0.17 RB   catch rate 0.14 RB   yds after contact 0.27 RB
+    TD luck     TDs over expected 0.09 WR / 0.11 RB / 0.15 TE   -- noise
+    health      games played 0.39 RB / 0.42 WR / 0.49 TE / 0.66 QB
+
+Volume repeats, efficiency mostly does not, TD luck does not repeat at all.
 
 ## Sleeper API — public, read-only, no auth, no key
 
@@ -103,41 +112,46 @@ Rate limit ~1000 req/min. The console polls at 2000ms, 1000ms when the pick is n
 
 ## Files
 
-- `index.html` — the whole app. Rankings are embedded in `<script id="ranksData">`.
-  Tunables live at the top of the script block: `ROSTER_NEED`, `FLEX_SLOTS`,
-  `WEIGHTS`, `CONFIG`. `window.DRAFT` exposes state for console poking.
-- `build_sheet.py` — builds `fantasy_draft_2026.xlsx` (6 tabs) AND `draft_sheet.csv`
-  (the Google Sheets import). The `board` list in here is the single source of truth
-  for rankings. Row offsets in BOTH outputs are computed dynamically — do not
-  hardcode them. Assertions parse every generated formula back out and prove its
-  ranges and criteria cells land on the computed rows.
-- `gen_ranks.py` — runs build_sheet.py, emits `ranks.json` for the web app.
-- `build_edge.py` — 2025 nflverse -> `data/` + `edge.json`. Raw pulls cached in
-  `data/raw/` (gitignored); `--refresh` re-downloads.
-- **`sync.py` — run this, not the scripts above.** It rebuilds sheet -> ranks ->
-  edge, re-inlines both JSONs into index.html, and verifies they match byte for
-  byte. `sync.py --check` verifies without changing anything. Running the
-  generators by hand is how ranks.json and index.html drifted apart twice.
-- `sleeper_sync.gs` — optional Apps Script that live-syncs the shared Google
-  Sheet. Read the header before installing: the 1-minute trigger floor makes it a
-  second-screen convenience for the co-owner, not a drafting tool.
-- `test_console.js` / `test_def.js` / `test_v2.js` — Playwright. Snake math, name
-  matching, DEF gating both directions, roster slots, payload drift.
-  **Run all three before shipping anything.**
+**Run `python3 sync.py`, not the individual scripts.** It rebuilds everything in
+dependency order, re-inlines both JSON payloads into index.html, and verifies they
+match byte for byte. `--full` also reruns the ~20 minute backtest. `--check`
+verifies without changing anything.
+
+- `index.html` — the whole app, one self-contained static file. Two inlined payloads:
+  `ranksData` (the board) and `edgeData` (projections + honesty block).
+- `league.py` — the scoring rules, once, verified live against Sleeper.
+- `data_pull.py` — caches nflverse 2012-2025 + FFC ADP 2010-2025 into `data/raw/`
+  (gitignored, ~357MB). Never re-downloads. Run once.
+- `build_panel.py` — raw -> `data/player_seasons.parquet` (8055 x 104).
+- `build_adp.py` — -> `data/adp.parquet`, format-validated and id-matched.
+- `features.py` — -> `data/features.parquet` (5524 rows, no leakage).
+- `stickiness.py` / `edge_tests.py` / `questions.py` / `backtest.py` — the analyses.
+- `project.py` — -> `data/projections_2026.*` (mean/floor/ceiling/bust).
+- `build_edge.py` — -> `edge.json`, the console payload (v2 kept as
+  `build_edge_v2_archived.py` for reference).
+- `make_reports.py` — -> `BACKTEST.md`, generated from the results files.
+- `build_sheet.py` / `gen_ranks.py` — the spreadsheet and board, as before.
+- `sleeper_sync.gs` — optional Apps Script for the shared Google Sheet.
+- **Tests:** `test_console.js` / `test_def.js` / `test_v2.js` (65 checks) and
+  `test_pipeline.py` (30 checks, including explicit leakage tests).
+  **Run all four before shipping anything.**
 
 ## Known limitations (honest)
 
 - Board is 129 players deep (117 skill + 12 defenses); a 12x12 draft is 144 picks,
   so the deepest rounds can still run past it.
-- The edge model is one season. 6 board players are 2026 rookies with no NFL data
-  and are excluded outright; 25 more had a 2025 role too small to describe their
-  2026 one (low snaps or few games) and are shown but explicitly not claimed as
-  edges. Only 86 of 129 carry a trusted edge.
-- The role models are fit leave-one-out, so a player's own scoring never sets the
-  coefficients used to predict him. Out-of-sample R^2 is 0.80 (QB, n=43) / 0.98
-  (RB) / 0.94 (WR) / 0.97 (TE). That is high because opportunity really does
-  explain scoring *within* a season — it is NOT evidence the model predicts 2026.
-  Roles change; that is what the model cannot see.
+- The projections are ADP-anchored by construction, because the model lost to ADP.
+  They are not an independent opinion about who is better; they are the market's
+  ranking with an uncertainty band attached.
+- Out-of-sample MAE is ~2.6 points per game, which is roughly +/-45 points across a
+  season. The floor-to-ceiling range is the honest representation; the mean is not.
+- Six board players are 2026 rookies with no NFL snaps. The model has nothing to say
+  about them and does not pretend to. ADP prices rookies as well as NFL draft capital
+  does (Spearman -0.542 vs -0.541), so they stay on the board at their ADP.
+- The half-PPR ADP board only exists from 2018. 2012-2017 uses the mean of the
+  standard and PPR boards, validated on the overlap at MAE 4.0 picks / Spearman 0.990.
+- snap_counts_2012 has no regular-season rows upstream, so 2012 contributes no snap
+  share and the first fully-featured training pair is 2013->2014.
 - Rankings snapshot is from FantasyFootballCalculator half-PPR ADP, refreshed Aug 27
   and again on draft morning. ADP past ~#60 is expert-consensus, not live market.
 - Position-relative tier bands: QB/TE "elite" = T5/T6 because those positions have no
