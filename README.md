@@ -78,7 +78,7 @@ npm install playwright && npx playwright install chromium   # first time only
 node test_console.js && node test_def.js && node test_v2.js && python3 test_pipeline.py
 ```
 
-95 checks: snake math, name matching, DEF gating in *both* directions, roster
+103 checks: snake math, name matching, DEF gating in *both* directions, roster
 slot assignment and FLEX overflow, survival-odds math, run detection, and a guard
 that fails if `ranks.json`/`edge.json` ever drift from what is inlined in
 `index.html`, and — in `test_pipeline.py` — explicit leakage tests proving no
